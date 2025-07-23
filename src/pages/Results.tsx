@@ -1,77 +1,15 @@
-import { useState, useEffect } from 'react'
 import { Calendar, Trophy, Users, Coins, RefreshCw } from 'lucide-react'
-import { LOTTERY_CONFIG } from '../config/lottery'
-
-interface DrawResult {
-  id: number
-  date: string
-  winningNumbers: number[]
-  jackpotAmount: string
-  winners: {
-    jackpot: number
-    second: number
-    third: number
-    fourth: number
-  }
-  totalTickets: number
-}
+import { useDrawResults } from '../hooks/useDrawResults'
 
 const Results = () => {
-  const [results, setResults] = useState<DrawResult[]>([])
-  const [loading, setLoading] = useState(false)
-
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockResults: DrawResult[] = [
-      {
-        id: 1,
-        date: '2024-01-20',
-        winningNumbers: [7, 14, 23, 31, 42, 49],
-        jackpotAmount: '125,000',
-        winners: {
-          jackpot: 0,
-          second: 2,
-          third: 15,
-          fourth: 87
-        },
-        totalTickets: 3891
-      },
-      {
-        id: 2,
-        date: '2024-01-17',
-        winningNumbers: [3, 18, 27, 35, 41, 46],
-        jackpotAmount: '98,500',
-        winners: {
-          jackpot: 1,
-          second: 3,
-          third: 22,
-          fourth: 156
-        },
-        totalTickets: 2847
-      },
-      {
-        id: 3,
-        date: '2024-01-13',
-        winningNumbers: [9, 16, 24, 33, 38, 45],
-        jackpotAmount: '87,200',
-        winners: {
-          jackpot: 0,
-          second: 1,
-          third: 18,
-          fourth: 94
-        },
-        totalTickets: 2156
-      }
-    ]
-    setResults(mockResults)
-  }, [])
+  const { drawResults, isLoading, refetch } = useDrawResults()
 
   const handleRefresh = async () => {
-    setLoading(true)
-    // TODO: Implement smart contract call to fetch latest results
-    setTimeout(() => {
-      setLoading(false)
-    }, 1000)
+    try {
+      await refetch()
+    } catch (error) {
+      console.error('Error refreshing results:', error)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -83,21 +21,17 @@ const Results = () => {
     })
   }
 
-  const getPrizeAmount = (result: DrawResult, tier: keyof DrawResult['winners']) => {
-    const jackpot = parseFloat(result.jackpotAmount.replace(',', ''))
-    const percentages = {
-      jackpot: 0.6,
-      second: 0.2,
-      third: 0.15,
-      fourth: 0.04
-    }
-    
+  const getPrizeAmount = (result: any, tier: keyof typeof result.winners) => {
     if (tier === 'jackpot' && result.winners.jackpot === 0) {
       return 'Rolled Over'
     }
     
-    const amount = (jackpot * percentages[tier]) / Math.max(result.winners[tier], 1)
-    return `${amount.toLocaleString()} KAS`
+    const prizeAmount = parseFloat(result.prizeAmounts[tier])
+    if (prizeAmount === 0) {
+      return 'No Winners'
+    }
+    
+    return `${prizeAmount.toFixed(4)} KAS`
   }
 
   return (
@@ -113,17 +47,17 @@ const Results = () => {
         
         <button
           onClick={handleRefresh}
-          disabled={loading}
+          disabled={isLoading}
           className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors disabled:opacity-50"
         >
-          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Refresh Results</span>
         </button>
       </div>
 
       {/* Results List */}
       <div className="space-y-6">
-        {results.map((result) => (
+        {drawResults.map((result) => (
           <div key={result.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-6">
@@ -136,7 +70,7 @@ const Results = () => {
                     </span>
                   </div>
                   <div className="text-3xl font-bold">
-                    Jackpot: {result.jackpotAmount} KAS
+                    Jackpot: {parseFloat(result.jackpotAmount).toFixed(4)} KAS
                   </div>
                 </div>
                 <div className="mt-4 md:mt-0 text-right">
@@ -243,15 +177,22 @@ const Results = () => {
         ))}
       </div>
 
-      {results.length === 0 && (
+      {drawResults.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-600 mb-2">
             No Results Available
           </h3>
           <p className="text-gray-500">
-            Check back after the next draw for results
+            No draws have been executed yet. Check back after the first draw!
           </p>
+        </div>
+      )}
+      
+      {isLoading && (
+        <div className="text-center py-12">
+          <div className="animate-spin w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading draw results...</p>
         </div>
       )}
     </div>

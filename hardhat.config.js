@@ -1,8 +1,9 @@
-require('@nomicfoundation/hardhat-toolbox');
-require('dotenv').config();
+import '@nomicfoundation/hardhat-toolbox';
+import { config } from 'dotenv';
+config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+export default {
   solidity: {
     version: '0.8.19',
     settings: {
@@ -17,7 +18,7 @@ module.exports = {
       chainId: 31337,
     },
     kasplex: {
-      url: 'https://rpc.kasplex.org',
+      url: 'https://rpc.kasplextest.xyz',
       chainId: 167012,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       gasPrice: 'auto',

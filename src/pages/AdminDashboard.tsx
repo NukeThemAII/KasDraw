@@ -3,41 +3,33 @@ import { useAccount } from 'wagmi'
 import { 
   Settings, 
   Play, 
-  Users, 
   Coins, 
   Trophy, 
   Calendar, 
   RefreshCw, 
   AlertTriangle,
   CheckCircle,
-  Clock
+  Loader2
 } from 'lucide-react'
-import { LOTTERY_CONFIG } from '../config/lottery'
+import { ADMIN_ADDRESS } from '../config/lottery'
+import { useLotteryContract } from '../hooks/useLotteryContract'
 import { toast } from 'sonner'
 
-interface LotteryStats {
-  currentJackpot: string
-  totalTicketsSold: number
-  totalPlayers: number
-  adminBalance: string
-  nextDrawTime: string
-  lastDrawId: number
-}
+
 
 const AdminDashboard = () => {
   const { address, isConnected } = useAccount()
-  const [stats, setStats] = useState<LotteryStats>({
-    currentJackpot: '125,000',
-    totalTicketsSold: 3891,
-    totalPlayers: 1247,
-    adminBalance: '3,891',
-    nextDrawTime: '2d 14h 32m',
-    lastDrawId: 1
-  })
+  const { 
+    lotteryState, 
+    refetchLotteryState, 
+    executeDrawAuto, 
+    withdrawAdminFees, 
+    isExecutingDraw, 
+    isWithdrawing 
+  } = useLotteryContract()
   const [loading, setLoading] = useState(false)
-  const [drawInProgress, setDrawInProgress] = useState(false)
 
-  const isAdmin = address?.toLowerCase() === LOTTERY_CONFIG.ADMIN_ADDRESS.toLowerCase()
+  const isAdmin = address?.toLowerCase() === ADMIN_ADDRESS.toLowerCase()
 
   useEffect(() => {
     if (isConnected && isAdmin) {
@@ -48,11 +40,14 @@ const AdminDashboard = () => {
 
   const handleRefreshStats = async () => {
     setLoading(true)
-    // TODO: Implement smart contract call to fetch latest stats
-    setTimeout(() => {
-      setLoading(false)
+    try {
+      await refetchLotteryState()
       toast.success('Stats refreshed')
-    }, 1000)
+    } catch {
+      toast.error('Failed to refresh stats')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleExecuteDraw = async () => {
@@ -61,21 +56,13 @@ const AdminDashboard = () => {
       return
     }
 
-    setDrawInProgress(true)
     try {
-      // TODO: Implement smart contract call to execute draw
-      await new Promise(resolve => setTimeout(resolve, 3000)) // Simulate draw execution
-      
+      await executeDrawAuto()
       toast.success('Draw executed successfully!')
-      setStats(prev => ({
-        ...prev,
-        lastDrawId: prev.lastDrawId + 1,
-        currentJackpot: '87,500' // Example new jackpot
-      }))
+      await refetchLotteryState()
     } catch (error) {
+      console.error('Draw execution failed:', error)
       toast.error('Failed to execute draw')
-    } finally {
-      setDrawInProgress(false)
     }
   }
 
@@ -86,27 +73,16 @@ const AdminDashboard = () => {
     }
 
     try {
-      // TODO: Implement smart contract call to withdraw admin fees
+      await withdrawAdminFees()
       toast.success('Admin fees withdrawn successfully!')
-      setStats(prev => ({ ...prev, adminBalance: '0' }))
+      await refetchLotteryState()
     } catch (error) {
+      console.error('Withdrawal failed:', error)
       toast.error('Failed to withdraw fees')
     }
   }
 
-  const handleEmergencyPause = async () => {
-    if (!isAdmin) {
-      toast.error('Only admin can pause the lottery')
-      return
-    }
 
-    try {
-      // TODO: Implement smart contract call to pause lottery
-      toast.success('Lottery paused for maintenance')
-    } catch (error) {
-      toast.error('Failed to pause lottery')
-    }
-  }
 
   if (!isConnected) {
     return (
@@ -133,7 +109,7 @@ const AdminDashboard = () => {
           You don't have permission to access the admin dashboard
         </p>
         <p className="text-sm text-gray-500 mt-2">
-          Admin address: {LOTTERY_CONFIG.ADMIN_ADDRESS}
+          Admin address: {ADMIN_ADDRESS}
         </p>
       </div>
     )
@@ -168,7 +144,7 @@ const AdminDashboard = () => {
             <span className="text-lg font-semibold text-gray-900">Current Jackpot</span>
           </div>
           <div className="text-3xl font-bold text-gray-900">
-            {stats.currentJackpot} KAS
+            {lotteryState?.accumulatedJackpot || '0'} KAS
           </div>
         </div>
 
@@ -178,17 +154,17 @@ const AdminDashboard = () => {
             <span className="text-lg font-semibold text-gray-900">Tickets Sold</span>
           </div>
           <div className="text-3xl font-bold text-gray-900">
-            {stats.totalTicketsSold.toLocaleString()}
+            {lotteryState?.totalTicketsSold?.toLocaleString() || '0'}
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <Users className="w-8 h-8 text-blue-500" />
-            <span className="text-lg font-semibold text-gray-900">Total Players</span>
+            <Calendar className="w-8 h-8 text-blue-500" />
+            <span className="text-lg font-semibold text-gray-900">Current Draw</span>
           </div>
           <div className="text-3xl font-bold text-gray-900">
-            {stats.totalPlayers.toLocaleString()}
+            #{lotteryState?.currentDrawId || '0'}
           </div>
         </div>
 
@@ -198,120 +174,89 @@ const AdminDashboard = () => {
             <span className="text-lg font-semibold text-gray-900">Admin Balance</span>
           </div>
           <div className="text-3xl font-bold text-gray-900">
-            {stats.adminBalance} KAS
+            {lotteryState?.adminBalance || '0'} KAS
           </div>
         </div>
       </div>
 
       {/* Admin Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Draw Management */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
-            <Play className="w-6 h-6" />
-            <span>Draw Management</span>
-          </h2>
-          
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-gray-700">Last Draw ID:</span>
-                <span className="text-lg font-bold text-gray-900">#{stats.lastDrawId}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-700">Next Draw:</span>
-                <span className="text-lg font-bold text-gray-900">{stats.nextDrawTime}</span>
-              </div>
-            </div>
-            
-            <button
-              onClick={handleExecuteDraw}
-              disabled={drawInProgress}
-              className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-            >
-              {drawInProgress ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>Executing Draw...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-5 h-5" />
-                  <span>Execute Draw</span>
-                </>
-              )}
-            </button>
-            
-            <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center space-x-2 mb-1">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <span className="font-medium text-blue-800">Draw Schedule</span>
-              </div>
-              <p>Draws occur every {LOTTERY_CONFIG.DRAW_DAYS.join(' & ')} at {LOTTERY_CONFIG.DRAW_TIME}</p>
-            </div>
-          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+            <Play className="w-6 h-6 text-green-500" />
+            <span>Execute Draw</span>
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Execute the lottery draw to generate winning numbers and distribute prizes.
+          </p>
+          <button
+            onClick={handleExecuteDraw}
+            disabled={isExecutingDraw || lotteryState?.paused}
+            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          >
+            {isExecutingDraw ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Executing Draw...</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5" />
+                <span>Execute Draw</span>
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Financial Management */}
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
-            <Coins className="w-6 h-6" />
-            <span>Financial Management</span>
-          </h2>
-          
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-gray-700">Available Fees:</span>
-                <span className="text-lg font-bold text-green-600">{stats.adminBalance} KAS</span>
-              </div>
-              <div className="text-sm text-gray-600">
-                1% of each ticket sale (${LOTTERY_CONFIG.TICKET_PRICE} KAS per ticket)
-              </div>
-            </div>
-            
-            <button
-              onClick={handleWithdrawFees}
-              disabled={stats.adminBalance === '0'}
-              className="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-            >
-              <Coins className="w-5 h-5" />
-              <span>Withdraw Admin Fees</span>
-            </button>
-            
-            <div className="text-sm text-gray-600 bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="flex items-center space-x-2 mb-1">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="font-medium text-green-800">Fee Structure</span>
-              </div>
-              <p>Admin receives 1% of all ticket sales for platform maintenance</p>
-            </div>
-          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+            <Coins className="w-6 h-6 text-blue-500" />
+            <span>Withdraw Fees</span>
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Withdraw accumulated admin fees from the lottery contract.
+          </p>
+          <button
+            onClick={handleWithdrawFees}
+            disabled={isWithdrawing || !lotteryState?.adminBalance || parseFloat(lotteryState.adminBalance) === 0}
+            className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-cyan-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          >
+            {isWithdrawing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Withdrawing...</span>
+              </>
+            ) : (
+              <>
+                <Coins className="w-5 h-5" />
+                <span>Withdraw {lotteryState?.adminBalance || '0'} KAS</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Emergency Controls */}
+      {/* Lottery Status */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
-          <AlertTriangle className="w-6 h-6 text-red-500" />
-          <span>Emergency Controls</span>
-        </h2>
-        
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <span className="font-semibold text-red-800">Caution: Emergency Functions</span>
+        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+          <CheckCircle className="w-6 h-6 text-green-500" />
+          <span>Lottery Status</span>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-gray-600">Contract Status:</span>
+            <span className={`font-semibold ${
+              lotteryState?.paused ? 'text-red-600' : 'text-green-600'
+            }`}>
+              {lotteryState?.paused ? 'Paused' : 'Active'}
+            </span>
           </div>
-          <p className="text-sm text-red-700 mb-4">
-            These functions should only be used in case of emergencies or maintenance.
-          </p>
-          
-          <button
-            onClick={handleEmergencyPause}
-            className="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
-          >
-            Emergency Pause
-          </button>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-gray-600">Current Draw ID:</span>
+            <span className="font-semibold text-gray-900">
+              #{lotteryState?.currentDrawId || '0'}
+            </span>
+          </div>
         </div>
       </div>
     </div>

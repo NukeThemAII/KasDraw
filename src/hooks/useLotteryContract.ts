@@ -1,103 +1,64 @@
-import { useContract, useContractRead, useContractWrite, usePrepareContractWrite } from 'wagmi'
+import { useReadContract, useWriteContract, useAccount } from 'wagmi'
 import { ethers } from 'ethers'
 import { LOTTERY_ABI, LOTTERY_CONTRACT_ADDRESS, LOTTERY_CONFIG } from '../config/lottery'
 import { toast } from 'sonner'
 
 export const useLotteryContract = () => {
-  // Get contract instance
-  const contract = useContract({
-    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: LOTTERY_ABI,
-  })
 
-  // Read lottery state
-  const { data: lotteryState, refetch: refetchLotteryState } = useContractRead({
+  // Get lottery state
+  const { 
+    data: lotteryState, 
+    refetch: refetchLotteryState 
+  } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getLotteryState',
-    watch: true,
   })
 
+  const { address: account } = useAccount()
+
+  // Get player stats for the connected account
+  const { 
+    data: playerStats, 
+    refetch: refetchPlayerStats 
+  } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'getPlayerStats',
+    args: [account as `0x${string}`],
+    query: {
+      enabled: !!account,
+    },
+  })
+  
   // Purchase tickets
-  const { config: purchaseConfig } = usePrepareContractWrite({
-    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: LOTTERY_ABI,
-    functionName: 'purchaseTickets',
-  })
+  const {
+    writeContract: purchaseTickets,
+    isPending: isPurchasing,
+  } = useWriteContract()
 
-  const { write: purchaseTickets, isLoading: isPurchasing } = useContractWrite({
-    ...purchaseConfig,
-    onSuccess: (data) => {
-      toast.success('Tickets purchased successfully!')
-      refetchLotteryState()
-    },
-    onError: (error) => {
-      console.error('Purchase failed:', error)
-      toast.error('Failed to purchase tickets')
-    },
-  })
-
-  // Execute draw (admin only)
-  const { config: drawConfig } = usePrepareContractWrite({
-    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: LOTTERY_ABI,
-    functionName: 'executeDraw',
-  })
-
-  const { write: executeDraw, isLoading: isExecutingDraw } = useContractWrite({
-    ...drawConfig,
-    onSuccess: (data) => {
-      toast.success('Draw executed successfully!')
-      refetchLotteryState()
-    },
-    onError: (error) => {
-      console.error('Draw execution failed:', error)
-      toast.error('Failed to execute draw')
-    },
-  })
+  // Execute draw
+  const {
+    writeContract: executeDraw,
+    isPending: isExecuting,
+  } = useWriteContract()
 
   // Claim prize
-  const { config: claimConfig } = usePrepareContractWrite({
-    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: LOTTERY_ABI,
-    functionName: 'claimPrize',
-  })
-
-  const { write: claimPrize, isLoading: isClaiming } = useContractWrite({
-    ...claimConfig,
-    onSuccess: (data) => {
-      toast.success('Prize claimed successfully!')
-      refetchLotteryState()
-    },
-    onError: (error) => {
-      console.error('Claim failed:', error)
-      toast.error('Failed to claim prize')
-    },
-  })
+  const {
+    writeContract: claimPrize,
+    isPending: isClaiming,
+  } = useWriteContract()
 
   // Withdraw admin fees
-  const { config: withdrawConfig } = usePrepareContractWrite({
-    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: LOTTERY_ABI,
-    functionName: 'withdrawAdminFees',
-  })
-
-  const { write: withdrawAdminFees, isLoading: isWithdrawing } = useContractWrite({
-    ...withdrawConfig,
-    onSuccess: (data) => {
-      toast.success('Admin fees withdrawn successfully!')
-      refetchLotteryState()
-    },
-    onError: (error) => {
-      console.error('Withdrawal failed:', error)
-      toast.error('Failed to withdraw admin fees')
-    },
-  })
+  const {
+    writeContract: withdrawAdminFees,
+    isPending: isWithdrawing,
+  } = useWriteContract()
 
   // Helper functions
   const buyTickets = async (ticketNumbers: number[][]) => {
-    if (!purchaseTickets) {
-      toast.error('Contract not ready')
+    if (!account) {
+      toast.error('Please connect your wallet')
       return
     }
 
@@ -111,13 +72,44 @@ export const useLotteryContract = () => {
         (ticketNumbers.length * parseFloat(LOTTERY_CONFIG.TICKET_PRICE)).toString()
       )
 
-      purchaseTickets({
+      await purchaseTickets({
+        address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOTTERY_ABI,
+        functionName: 'purchaseTickets',
         args: [formattedTickets],
         value: totalCost,
-      })
+      } as any)
+      
+      toast.success('Tickets purchased successfully!')
+      // Refetch lottery state and player stats after successful purchase
+      refetchLotteryState()
+      refetchPlayerStats()
     } catch (error) {
       console.error('Error buying tickets:', error)
-      toast.error('Failed to prepare ticket purchase')
+      toast.error('Failed to purchase tickets')
+    }
+  }
+
+  const executeDrawAuto = async () => {
+    if (!account) {
+      toast.error('Please connect your wallet')
+      return
+    }
+
+    try {
+      await executeDraw({
+        address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOTTERY_ABI,
+        functionName: 'executeDraw',
+      } as any)
+      
+      toast.success('Draw executed successfully!')
+      // Refetch lottery state and player stats after successful draw execution
+      refetchLotteryState()
+      refetchPlayerStats()
+    } catch (error) {
+      console.error('Error executing draw:', error)
+      toast.error('Failed to execute draw')
     }
   }
 
@@ -129,28 +121,58 @@ export const useLotteryContract = () => {
 
     try {
       const formattedNumbers = winningNumbers.map(num => BigInt(num))
-      executeDraw({
-        args: [formattedNumbers],
-      })
+      // This would need a separate hook for executeDrawManual
+      console.log('Manual draw with numbers:', formattedNumbers)
+      toast.info('Manual draw not implemented in this hook')
     } catch (error) {
-      console.error('Error executing draw:', error)
-      toast.error('Failed to prepare draw execution')
+      console.error('Error executing manual draw:', error)
+      toast.error('Failed to prepare manual draw execution')
     }
   }
 
   const claimTicketPrize = async (ticketId: number) => {
-    if (!claimPrize) {
-      toast.error('Contract not ready')
+    if (!account) {
+      toast.error('Please connect your wallet')
       return
     }
 
     try {
-      claimPrize({
+      await claimPrize({
+        address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOTTERY_ABI,
+        functionName: 'claimPrize',
         args: [BigInt(ticketId)],
-      })
+      } as any)
+      
+      toast.success('Prize claimed successfully!')
+      // Refetch lottery state and player stats after successful claim
+      refetchLotteryState()
+      refetchPlayerStats()
     } catch (error) {
       console.error('Error claiming prize:', error)
-      toast.error('Failed to prepare prize claim')
+      toast.error('Failed to claim prize')
+    }
+  }
+
+  const withdrawAdminFeesAction = async () => {
+    if (!account) {
+      toast.error('Please connect your wallet')
+      return
+    }
+
+    try {
+      await withdrawAdminFees({
+        address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOTTERY_ABI,
+        functionName: 'withdrawAdminFees',
+      } as any)
+      
+      toast.success('Admin fees withdrawn successfully!')
+      // Refetch lottery state after successful withdrawal
+      refetchLotteryState()
+    } catch (error) {
+      console.error('Error withdrawing admin fees:', error)
+      toast.error('Failed to withdraw admin fees')
     }
   }
 
@@ -164,19 +186,21 @@ export const useLotteryContract = () => {
   } : null
 
   return {
-    contract,
     lotteryState: parsedLotteryState,
+    playerStats,
     refetchLotteryState,
+    refetchPlayerStats,
     
     // Actions
     buyTickets,
+    executeDrawAuto,
     executeDrawWithNumbers,
     claimTicketPrize,
-    withdrawAdminFees,
+    withdrawAdminFees: withdrawAdminFeesAction,
     
     // Loading states
     isPurchasing,
-    isExecutingDraw,
+    isExecutingDraw: isExecuting,
     isClaiming,
     isWithdrawing,
   }
@@ -184,12 +208,11 @@ export const useLotteryContract = () => {
 
 // Hook for reading ticket data
 export const useTicketData = (ticketId: number) => {
-  const { data: ticketData } = useContractRead({
+  const { data: ticketData } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getTicket',
     args: [BigInt(ticketId)],
-    enabled: ticketId > 0,
   })
 
   return ticketData ? {
@@ -202,12 +225,11 @@ export const useTicketData = (ticketId: number) => {
 
 // Hook for reading draw data
 export const useDrawData = (drawId: number) => {
-  const { data: drawData } = useContractRead({
+  const { data: drawData } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getDraw',
     args: [BigInt(drawId)],
-    enabled: drawId > 0,
   })
 
   return drawData ? {
@@ -222,12 +244,11 @@ export const useDrawData = (drawId: number) => {
 
 // Hook for reading player stats
 export const usePlayerStats = (playerAddress: string) => {
-  const { data: playerData } = useContractRead({
+  const { data: playerData } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getPlayerStats',
     args: [playerAddress as `0x${string}`],
-    enabled: !!playerAddress,
   })
 
   return playerData ? {

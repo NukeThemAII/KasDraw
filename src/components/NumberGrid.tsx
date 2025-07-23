@@ -16,11 +16,11 @@ const NumberGrid = ({ selectedNumbers, onNumberSelect, maxNumbers }: NumberGridP
             key={number}
             onClick={() => onNumberSelect(number)}
             className={`
-              aspect-square rounded-lg font-semibold text-sm md:text-base transition-all duration-200 transform hover:scale-105
+              aspect-square rounded-lg font-semibold text-sm md:text-base transition-all duration-300 transform
               ${
                 isSelected
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                  ? 'kaspa-number'
+                  : 'bg-gradient-to-br from-slate-100 to-cyan-50 text-slate-700 hover:from-cyan-100 hover:to-teal-100 border-2 border-cyan-200 hover:border-cyan-400 hover:scale-105 ghost-glow'
               }
             `}
           >

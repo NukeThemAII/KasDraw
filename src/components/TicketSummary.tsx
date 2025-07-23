@@ -1,4 +1,4 @@
-import { ShoppingCart, X, Wallet } from 'lucide-react'
+import { ShoppingCart, X, Wallet, Loader2 } from 'lucide-react'
 import { LOTTERY_CONFIG } from '../config/lottery'
 
 interface TicketSummaryProps {
@@ -7,6 +7,7 @@ interface TicketSummaryProps {
   onPurchase: () => void
   totalCost: number
   isConnected: boolean
+  isPurchasing?: boolean
 }
 
 const TicketSummary = ({ 
@@ -14,30 +15,31 @@ const TicketSummary = ({
   onRemoveTicket, 
   onPurchase, 
   totalCost, 
-  isConnected 
+  isConnected,
+  isPurchasing = false
 }: TicketSummaryProps) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
-      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
-        <ShoppingCart className="w-5 h-5" />
-        <span>Your Tickets</span>
+    <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8 ghost-glow">
+      <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center space-x-2">
+        <ShoppingCart className="w-5 h-5 text-cyan-600" />
+        <span>Your BlockDAG Tickets</span>
       </h3>
       
       {tickets.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-cyan-500">
           <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>No tickets added yet</p>
-          <p className="text-sm">Select {LOTTERY_CONFIG.NUMBERS_PER_TICKET} numbers to add a ticket</p>
+          <p>No Ghost tickets added yet</p>
+          <p className="text-sm">Select {LOTTERY_CONFIG.NUMBERS_PER_TICKET} numbers to add a BlockDAG ticket</p>
         </div>
       ) : (
         <div className="space-y-3 mb-6">
           {tickets.map((ticket, index) => (
-            <div key={index} className="bg-gray-50 rounded-lg p-3 flex justify-between items-center">
+            <div key={index} className="lottery-ticket bg-cyan-50 rounded-lg p-3 flex justify-between items-center">
               <div className="flex flex-wrap gap-1">
                 {ticket.map((number) => (
                   <span
                     key={number}
-                    className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full flex items-center justify-center text-sm font-semibold"
+                    className="kaspa-number w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-semibold"
                   >
                     {number}
                   </span>
@@ -55,17 +57,17 @@ const TicketSummary = ({
       )}
       
       {tickets.length > 0 && (
-        <div className="border-t pt-4">
+        <div className="border-t border-cyan-200 pt-4">
           <div className="flex justify-between items-center mb-4">
-            <span className="text-gray-600">Total Cost:</span>
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-cyan-600">Total BlockDAG Cost:</span>
+            <span className="text-xl font-bold text-slate-900">
               {totalCost.toFixed(1)} KAS
             </span>
           </div>
           
-          <div className="text-sm text-gray-500 mb-4">
+          <div className="text-sm text-cyan-500 mb-4">
             <div className="flex justify-between">
-              <span>Tickets:</span>
+              <span>Ghost Tickets:</span>
               <span>{tickets.length}</span>
             </div>
             <div className="flex justify-between">
@@ -75,21 +77,30 @@ const TicketSummary = ({
           </div>
           
           {!isConnected ? (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-              <div className="flex items-center space-x-2 text-yellow-800">
+            <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center space-x-2 text-cyan-800">
                 <Wallet className="w-4 h-4" />
-                <span className="text-sm">Connect your wallet to purchase tickets</span>
+                <span className="text-sm">Connect your Kasplex wallet to purchase Ghost tickets</span>
               </div>
             </div>
           ) : null}
           
           <button
             onClick={onPurchase}
-            disabled={!isConnected || tickets.length === 0}
-            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            disabled={!isConnected || tickets.length === 0 || isPurchasing}
+            className="kaspa-button w-full py-3 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
-            <ShoppingCart className="w-5 h-5" />
-            <span>Purchase Tickets</span>
+            {isPurchasing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Processing BlockDAG...</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-5 h-5" />
+                <span>Purchase Ghost Tickets</span>
+              </>
+            )}
           </button>
         </div>
       )}

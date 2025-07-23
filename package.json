@@ -11,17 +11,19 @@
     "check": "tsc -b --noEmit"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.4.0",
+    "@openzeppelin/contracts": "^4.9.6",
+    "@radix-ui/react-slot": "^1.2.3",
     "@rainbow-me/rainbowkit": "^2.2.8",
     "@tanstack/react-query": "^5.83.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "ethers": "^6.15.0",
     "lucide-react": "^0.511.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.3.0",
-    "sonner": "^2.0.2",
-    "tailwind-merge": "^3.0.2",
+    "sonner": "^2.0.6",
+    "tailwind-merge": "^3.3.1",
     "viem": "^2.33.0",
     "wagmi": "^2.16.0",
     "zustand": "^5.0.3"

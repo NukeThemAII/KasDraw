@@ -1,4 +1,6 @@
-const { ethers } = require('hardhat');
+import hre from 'hardhat';
+import fs from 'fs';
+const { ethers } = hre;
 
 async function main() {
   console.log('Deploying KasDrawLottery contract...');
@@ -10,10 +12,10 @@ async function main() {
   const lottery = await KasDrawLottery.deploy();
   
   // Wait for deployment to complete
-  await lottery.deployed();
+  await lottery.waitForDeployment();
   
-  console.log('KasDrawLottery deployed to:', lottery.address);
-  console.log('Transaction hash:', lottery.deployTransaction.hash);
+  console.log('KasDrawLottery deployed to:', await lottery.getAddress());
+  console.log('Transaction hash:', lottery.deploymentTransaction().hash);
   
   // Verify deployment
   const owner = await lottery.owner();
@@ -23,19 +25,18 @@ async function main() {
   console.log('\nContract Details:');
   console.log('Owner:', owner);
   console.log('Current Draw ID:', currentDrawId.toString());
-  console.log('Ticket Price:', ethers.utils.formatEther(ticketPrice), 'KAS');
+  console.log('Ticket Price:', ethers.formatEther(ticketPrice), 'KAS');
   
   // Save deployment info
   const deploymentInfo = {
-    contractAddress: lottery.address,
-    deploymentHash: lottery.deployTransaction.hash,
+    contractAddress: await lottery.getAddress(),
+    deploymentHash: lottery.deploymentTransaction().hash,
     owner: owner,
     network: 'Kasplex EVM Testnet',
     chainId: 167012,
     deployedAt: new Date().toISOString()
   };
   
-  const fs = require('fs');
   fs.writeFileSync(
     './deployment-info.json',
     JSON.stringify(deploymentInfo, null, 2)

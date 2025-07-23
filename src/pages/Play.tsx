@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useAccount } from 'wagmi'
-import { Shuffle, ShoppingCart, Info } from 'lucide-react'
+import { Shuffle, Info } from 'lucide-react'
 import { LOTTERY_CONFIG } from '../config/lottery'
+import { useLotteryContract } from '../hooks/useLotteryContract'
 import NumberGrid from '../components/NumberGrid'
 import TicketSummary from '../components/TicketSummary'
 import { toast } from 'sonner'
 
 const Play = () => {
   const { isConnected } = useAccount()
+  const { buyTickets, isPurchasing } = useLotteryContract()
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([])
   const [tickets, setTickets] = useState<number[][]>([])
 
@@ -58,8 +60,15 @@ const Play = () => {
       return
     }
 
-    // TODO: Implement smart contract interaction
-    toast.success(`Purchasing ${tickets.length} ticket(s)...`)
+    try {
+      await buyTickets(tickets)
+      // Clear tickets after successful purchase
+      setTickets([])
+      toast.success(`Successfully purchased ${tickets.length} ticket(s)!`)
+    } catch (error) {
+      console.error('Purchase failed:', error)
+      toast.error('Failed to purchase tickets. Please try again.')
+    }
   }
 
   const totalCost = tickets.length * parseFloat(LOTTERY_CONFIG.TICKET_PRICE)
@@ -68,28 +77,31 @@ const Play = () => {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Play KasDraw Lottery
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent mb-4">
+          Play BlockDAG Lottery
         </h1>
-        <p className="text-lg text-gray-600 mb-6">
-          Select {LOTTERY_CONFIG.NUMBERS_PER_TICKET} numbers from {LOTTERY_CONFIG.MIN_NUMBER} to {LOTTERY_CONFIG.MAX_NUMBER}
+        <p className="text-lg text-slate-600 mb-2">
+          Select {LOTTERY_CONFIG.NUMBERS_PER_TICKET} Ghost numbers from {LOTTERY_CONFIG.MIN_NUMBER} to {LOTTERY_CONFIG.MAX_NUMBER}
+        </p>
+        <p className="text-sm text-cyan-600 mb-6">
+          Powered by GhostDAG • Instant Confirmation • Parallel Processing
         </p>
         
         {/* Game Info */}
-        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-8">
+        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-8 ghost-glow">
           <div className="flex items-center justify-center space-x-2 mb-2">
             <Info className="w-5 h-5 text-cyan-600" />
-            <span className="font-semibold text-cyan-800">Game Information</span>
+            <span className="font-semibold text-cyan-800">BlockDAG Protocol Information</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-cyan-700">
             <div>
-              <span className="font-medium">Ticket Price:</span> {LOTTERY_CONFIG.TICKET_PRICE} KAS
+              <span className="font-medium">Ghost Ticket Price:</span> {LOTTERY_CONFIG.TICKET_PRICE} KAS
             </div>
             <div>
-              <span className="font-medium">Draw Days:</span> {LOTTERY_CONFIG.DRAW_DAYS.join(', ')}
+              <span className="font-medium">GhostDAG Draw Days:</span> {LOTTERY_CONFIG.DRAW_DAYS.join(', ')}
             </div>
             <div>
-              <span className="font-medium">Draw Time:</span> {LOTTERY_CONFIG.DRAW_TIME}
+              <span className="font-medium">Parallel Draw Time:</span> {LOTTERY_CONFIG.DRAW_TIME}
             </div>
           </div>
         </div>
@@ -98,17 +110,17 @@ const Play = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Number Selection */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 ghost-glow">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Select Your Numbers
+              <h2 className="text-2xl font-bold text-slate-900">
+                Select Your Ghost Numbers
               </h2>
               <button
                 onClick={handleQuickPick}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors"
+                className="kaspa-button flex items-center space-x-2 px-4 py-2 text-white rounded-lg"
               >
                 <Shuffle className="w-4 h-4" />
-                <span>Quick Pick</span>
+                <span>BlockDAG Quick Pick</span>
               </button>
             </div>
             
@@ -119,15 +131,15 @@ const Play = () => {
             />
             
             <div className="mt-6 flex justify-between items-center">
-              <div className="text-sm text-gray-600">
-                Selected: {selectedNumbers.length}/{LOTTERY_CONFIG.NUMBERS_PER_TICKET}
+              <div className="text-sm text-cyan-600">
+                Ghost Numbers Selected: {selectedNumbers.length}/{LOTTERY_CONFIG.NUMBERS_PER_TICKET}
               </div>
               <button
                 onClick={handleAddTicket}
                 disabled={selectedNumbers.length !== LOTTERY_CONFIG.NUMBERS_PER_TICKET}
-                className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="kaspa-button px-6 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add Ticket
+                Add BlockDAG Ticket
               </button>
             </div>
           </div>
@@ -141,6 +153,7 @@ const Play = () => {
             onPurchase={handlePurchaseTickets}
             totalCost={totalCost}
             isConnected={isConnected}
+            isPurchasing={isPurchasing}
           />
         </div>
       </div>

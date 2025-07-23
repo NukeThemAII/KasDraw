@@ -7,8 +7,71 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* Kaspa Turquoise Blue Theme */
+  --kaspa-turquoise: #40E0D0;
+  --kaspa-light-blue: #00D4E6;
+  --kaspa-dark-blue: #0099A8;
+  --kaspa-ghost: #E0F8FF;
+  --kaspa-blockdag: #1A365D;
+  --kaspa-accent: #2DD4BF;
+  
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Kaspa-themed number display */
+.kaspa-number {
+  @apply bg-gradient-to-br from-cyan-400 to-teal-500 text-white font-bold shadow-lg;
+  border: 2px solid var(--kaspa-turquoise);
+}
+
+.kaspa-number:hover {
+  @apply from-cyan-300 to-teal-400 transform scale-105;
+  box-shadow: 0 0 20px var(--kaspa-turquoise);
+}
+
+.kaspa-winning-number {
+  @apply bg-gradient-to-br from-yellow-400 to-orange-500 text-white font-bold;
+  border: 3px solid #FFD700;
+  animation: pulse-gold 2s infinite;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 10px #FFD700; }
+  50% { box-shadow: 0 0 25px #FFD700, 0 0 35px #FFD700; }
+}
+
+/* BlockDAG themed elements */
+.blockdag-pattern {
+  background: linear-gradient(45deg, transparent 25%, rgba(64, 224, 208, 0.1) 25%, rgba(64, 224, 208, 0.1) 50%, transparent 50%, transparent 75%, rgba(64, 224, 208, 0.1) 75%);
+  background-size: 20px 20px;
+}
+
+/* Ghost protocol styling */
+.ghost-glow {
+  box-shadow: 0 0 20px rgba(224, 248, 255, 0.5), inset 0 0 20px rgba(224, 248, 255, 0.1);
+}
+
+/* Lottery ticket styling */
+.lottery-ticket {
+  @apply bg-gradient-to-br from-slate-50 to-cyan-50 border-2 border-cyan-200 rounded-xl p-4;
+  box-shadow: 0 4px 15px rgba(64, 224, 208, 0.2);
+}
+
+.lottery-ticket:hover {
+  @apply border-cyan-400;
+  box-shadow: 0 8px 25px rgba(64, 224, 208, 0.3);
+}
+
+/* Enhanced button styling */
+.kaspa-button {
+  @apply bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-400 hover:to-teal-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300;
+  box-shadow: 0 4px 15px rgba(64, 224, 208, 0.3);
+}
+
+.kaspa-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.4);
 }

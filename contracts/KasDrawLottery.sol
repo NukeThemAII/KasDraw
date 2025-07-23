@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
  */
 contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     // Constants
-    uint256 public constant TICKET_PRICE = 0.1 ether; // 0.1 KAS
+    uint256 public constant TICKET_PRICE = 10 ether; // 10 KAS
     uint256 public constant NUMBERS_PER_TICKET = 6;
     uint256 public constant MAX_NUMBER = 49;
     uint256 public constant MIN_NUMBER = 1;
@@ -22,7 +22,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     uint256 public constant JACKPOT_PERCENTAGE = 60; // 60%
     uint256 public constant SECOND_PRIZE_PERCENTAGE = 20; // 20%
     uint256 public constant THIRD_PRIZE_PERCENTAGE = 15; // 15%
-    uint256 public constant FOURTH_PRIZE_PERCENTAGE = 4; // 4%
+    uint256 public constant FOURTH_PRIZE_PERCENTAGE = 5; // 5% (fixed from 4% to total 100%)
     
     // Structs
     struct Ticket {
@@ -96,7 +96,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
      * @param ticketNumbers Array of ticket numbers (each ticket has NUMBERS_PER_TICKET numbers)
      */
     function purchaseTickets(
-        uint256[][NUMBERS_PER_TICKET] calldata ticketNumbers
+        uint256[NUMBERS_PER_TICKET][] calldata ticketNumbers
     ) external payable nonReentrant whenNotPaused {
         require(ticketNumbers.length > 0, "Must purchase at least one ticket");
         require(
@@ -138,15 +138,35 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     }
     
     /**
-     * @dev Execute lottery draw (only owner)
+     * @dev Execute lottery draw with random number generation (only owner)
+     */
+    function executeDraw() external onlyOwner {
+        require(!draws[currentDrawId].executed, "Draw already executed");
+        require(drawTickets[currentDrawId].length > 0, "No tickets sold for this draw");
+        
+        // Generate random winning numbers
+        uint256[NUMBERS_PER_TICKET] memory winningNumbers = _generateRandomNumbers();
+        
+        _executeDraw(winningNumbers);
+    }
+    
+    /**
+     * @dev Execute lottery draw with manual numbers (only owner) - for testing
      * @param winningNumbers The winning numbers for this draw
      */
-    function executeDraw(
+    function executeDrawManual(
         uint256[NUMBERS_PER_TICKET] calldata winningNumbers
     ) external onlyOwner {
         require(!draws[currentDrawId].executed, "Draw already executed");
         _validateTicketNumbers(winningNumbers);
         
+        _executeDraw(winningNumbers);
+    }
+    
+    /**
+     * @dev Internal function to execute draw with given winning numbers
+     */
+    function _executeDraw(uint256[NUMBERS_PER_TICKET] memory winningNumbers) internal {
         Draw storage draw = draws[currentDrawId];
         draw.id = currentDrawId;
         draw.timestamp = block.timestamp;
@@ -384,3 +404,76 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         }
         
         return matches;
+    }
+    
+    /**
+     * @dev Generate random winning numbers using enhanced randomness
+     * Uses multiple entropy sources for better randomness distribution
+     * Implements Fisher-Yates shuffle algorithm for uniform distribution
+     */
+    function _generateRandomNumbers() internal view returns (uint256[NUMBERS_PER_TICKET] memory) {
+        // Create array of all possible numbers (1-49)
+        uint256[] memory availableNumbers = new uint256[](MAX_NUMBER);
+        for (uint256 i = 0; i < MAX_NUMBER; i++) {
+            availableNumbers[i] = i + MIN_NUMBER;
+        }
+        
+        uint256[NUMBERS_PER_TICKET] memory selectedNumbers;
+        uint256 remainingCount = MAX_NUMBER;
+        
+        // Enhanced entropy sources
+        uint256 baseEntropy = uint256(keccak256(abi.encodePacked(
+            block.timestamp,
+            block.difficulty,
+            block.number,
+            block.coinbase,
+            msg.sender,
+            currentDrawId,
+            totalTicketsSold,
+            address(this).balance,
+            gasleft()
+        )));
+        
+        // Use Fisher-Yates shuffle to select 6 unique numbers
+        for (uint256 i = 0; i < NUMBERS_PER_TICKET; i++) {
+            // Generate additional entropy for each selection
+            uint256 additionalEntropy = uint256(keccak256(abi.encodePacked(
+                baseEntropy,
+                i,
+                block.timestamp + i,
+                remainingCount
+            )));
+            
+            // Select random index from remaining numbers
+            uint256 randomIndex = additionalEntropy % remainingCount;
+            
+            // Add selected number to result
+            selectedNumbers[i] = availableNumbers[randomIndex];
+            
+            // Remove selected number by swapping with last element
+            availableNumbers[randomIndex] = availableNumbers[remainingCount - 1];
+            remainingCount--;
+        }
+        
+        // Sort the selected numbers for consistent display
+        _sortNumbers(selectedNumbers);
+        
+        return selectedNumbers;
+    }
+    
+    /**
+     * @dev Sort numbers array in ascending order using bubble sort
+     * @param numbers Array of numbers to sort
+     */
+    function _sortNumbers(uint256[NUMBERS_PER_TICKET] memory numbers) internal pure {
+        for (uint256 i = 0; i < NUMBERS_PER_TICKET - 1; i++) {
+            for (uint256 j = 0; j < NUMBERS_PER_TICKET - i - 1; j++) {
+                if (numbers[j] > numbers[j + 1]) {
+                    uint256 temp = numbers[j];
+                    numbers[j] = numbers[j + 1];
+                    numbers[j + 1] = temp;
+                }
+            }
+        }
+    }
+}

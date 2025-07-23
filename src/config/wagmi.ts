@@ -7,3 +7,10 @@ export const config = getDefaultConfig({
   chains: [kasplexTestnet],
   ssr: false, // If your dApp uses server side rendering (SSR)
 })
+
+// Register config with TypeScript for better type inference
+declare module 'wagmi' {
+  interface Register {
+    config: typeof config
+  }
+}
