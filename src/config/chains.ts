@@ -12,6 +12,10 @@ export const kasplexTestnet = defineChain({
   rpcUrls: {
     default: {
       http: ['https://rpc.kasplextest.xyz'],
+      webSocket: undefined,
+    },
+    public: {
+      http: ['https://rpc.kasplextest.xyz'],
     },
   },
   blockExplorers: {

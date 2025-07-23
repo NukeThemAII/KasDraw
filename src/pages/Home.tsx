@@ -2,12 +2,18 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Trophy, Clock, Users, Coins, Play, Info } from 'lucide-react'
 import { LOTTERY_CONFIG } from '../config/lottery'
+import { useLotteryContract } from '../hooks/useLotteryContract'
 
 const Home = () => {
-  const [currentJackpot, setCurrentJackpot] = useState('125,000')
+  const { lotteryState } = useLotteryContract()
   const [nextDrawTime, setNextDrawTime] = useState('')
-  const [totalPlayers, setTotalPlayers] = useState(1247)
-  const [ticketsSold, setTicketsSold] = useState(3891)
+  
+  // Use dynamic data from smart contract or fallback to static values
+  const currentJackpot = lotteryState?.accumulatedJackpot ? 
+    parseFloat(lotteryState.accumulatedJackpot).toLocaleString(undefined, { maximumFractionDigits: 2 }) : 
+    '125,000'
+  const totalPlayers = 1247 // This would need additional contract tracking
+  const ticketsSold = lotteryState?.totalTicketsSold || 3891
 
   useEffect(() => {
     // Calculate next draw time

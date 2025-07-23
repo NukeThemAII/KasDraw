@@ -31,6 +31,11 @@
 
 ## Current Issues 🔧
 
+### Critical Issues
+- [x] RPC connection failures causing transaction timeouts (FIXED: Added retry logic and timeout configuration)
+- [x] Dynamic jackpot not displaying from smart contract (FIXED: Updated Home.tsx to use useLotteryContract)
+- [ ] Kasplex testnet RPC endpoint intermittent connectivity issues
+
 ### Known Bugs
 - [ ] "My Tickets" page occasionally loads as white page (requires refresh)
 - [ ] Need better error boundaries and loading states

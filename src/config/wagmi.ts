@@ -1,10 +1,18 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { kasplexTestnet } from './chains'
+import { http } from 'viem'
 
 export const config = getDefaultConfig({
   appName: 'KasDraw Lottery',
   projectId: 'kasdraw-lottery-dapp', // You can get a project ID from WalletConnect Cloud
   chains: [kasplexTestnet],
+  transports: {
+    [kasplexTestnet.id]: http('https://rpc.kasplextest.xyz', {
+      timeout: 30000,
+      retryCount: 3,
+      retryDelay: 1000,
+    }),
+  },
   ssr: false, // If your dApp uses server side rendering (SSR)
 })
 
