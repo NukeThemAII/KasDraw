@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\matal\\Documents\\Trae\\KasDraw\\contracts\\KasDrawLottery.sol": {
-      "lastModificationDate": 1753287735555,
-      "contentHash": "df4deba6e56777b0fad214b946cb463e",
+      "lastModificationDate": 1753293674543,
+      "contentHash": "d76223e6b75a9d99e0e35b4df7e3e6c0",
       "sourceName": "contracts/KasDrawLottery.sol",
       "solcConfig": {
         "version": "0.8.19",

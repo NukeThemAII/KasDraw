@@ -1,8 +1,17 @@
-import { Calendar, Trophy, Users, Coins, RefreshCw } from 'lucide-react'
+import { Calendar, Trophy, Users, Coins, RefreshCw, Wallet, TrendingUp } from 'lucide-react'
 import { useDrawResults } from '../hooks/useDrawResults'
+import { useLotteryContract } from '../hooks/useLotteryContract'
+import { useRolloverAmount, useLastFourDrawsWinners } from '../hooks/useWinnerData'
+import { formatEther } from 'viem'
 
 const Results = () => {
   const { drawResults, isLoading, refetch } = useDrawResults()
+  const { lotteryState } = useLotteryContract()
+  const { rolloverAmount, isLoading: rolloverLoading } = useRolloverAmount()
+  const { allWinners, isLoading: winnersLoading } = useLastFourDrawsWinners()
+
+  const currentJackpot = lotteryState ? lotteryState.accumulatedJackpot : '0'
+  const stateLoading = !lotteryState
 
   const handleRefresh = async () => {
     try {
@@ -56,6 +65,41 @@ const Results = () => {
           <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
           <span>{isLoading ? 'Syncing BlockDAG...' : 'Refresh GhostDAG Results'}</span>
         </button>
+      </div>
+
+      {/* Live Jackpot & Rollover Info */}
+      <div className="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl shadow-lg text-white p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
+              <Trophy className="w-6 h-6" />
+              <span className="text-lg font-semibold">Current Live Jackpot</span>
+            </div>
+            <div className="text-4xl font-bold mb-2">
+              {stateLoading ? (
+                <div className="animate-pulse bg-white/20 rounded h-12 w-48 mx-auto md:mx-0"></div>
+              ) : (
+                `${parseFloat(currentJackpot).toFixed(4)} KAS`
+              )}
+            </div>
+            <p className="text-sm opacity-90">Real-time blockchain data</p>
+          </div>
+          
+          <div className="text-center md:text-right">
+            <div className="flex items-center justify-center md:justify-end space-x-2 mb-2">
+              <TrendingUp className="w-6 h-6" />
+              <span className="text-lg font-semibold">Next Draw Rollover</span>
+            </div>
+            <div className="text-4xl font-bold mb-2">
+              {rolloverLoading ? (
+                <div className="animate-pulse bg-white/20 rounded h-12 w-48 mx-auto md:mx-0"></div>
+              ) : (
+                `${parseFloat(rolloverAmount).toFixed(4)} KAS`
+              )}
+            </div>
+            <p className="text-sm opacity-90">Available for next draw</p>
+          </div>
+        </div>
       </div>
 
       {/* Results List */}
@@ -209,6 +253,71 @@ const Results = () => {
             <RefreshCw className="w-5 h-5" />
             <span>Sync BlockDAG</span>
           </button>
+        </div>
+      )}
+
+      {/* Recent Winners Section */}
+      {allWinners.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center space-x-2 mb-6">
+            <Wallet className="w-6 h-6 text-cyan-600" />
+            <h2 className="text-2xl font-bold text-slate-900">Recent Winners - Last 4 Draws</h2>
+          </div>
+          
+          {winnersLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin w-6 h-6 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading winner data...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {allWinners.map((winner, index) => (
+                <div key={`${winner.drawId}-${winner.address}-${index}`} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg border border-cyan-200">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="bg-cyan-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                        Draw #{winner.drawId}
+                      </div>
+                      <div className="bg-green-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                        {winner.matchCount} matches
+                      </div>
+                      {winner.claimed && (
+                        <div className="bg-yellow-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                          Claimed
+                        </div>
+                      )}
+                    </div>
+                    <div className="font-mono text-sm text-slate-700 break-all">
+                      {winner.address}
+                    </div>
+                  </div>
+                  <div className="mt-3 md:mt-0 md:text-right">
+                    <div className="text-lg font-bold text-cyan-600">
+                      {parseFloat(winner.prizeAmount).toFixed(4)} KAS
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      Prize Amount
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {allWinners.length === 0 && (
+                <div className="text-center py-8 text-slate-500">
+                  <Wallet className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No winners found in the last 4 draws</p>
+                  <p className="text-sm mt-2">Winners will appear here after draws are executed</p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div className="mt-6 p-4 bg-cyan-50 rounded-lg border border-cyan-200">
+            <p className="text-sm text-cyan-700">
+              <strong>Note:</strong> Winner addresses are displayed from the last 4 completed draws. 
+              All data is sourced directly from the blockchain for transparency and verification.
+            </p>
+          </div>
         </div>
       )}
       

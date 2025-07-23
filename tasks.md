@@ -3,7 +3,7 @@
 ## Completed Tasks ✅
 
 ### Core Functionality
-- [x] Smart contract implementation with 10 KAS ticket price
+- [x] Smart contract implementation with 0.1 KAS ticket price (reverted from 10 KAS)
 - [x] Lottery ticket purchase system
 - [x] Number selection (1-49, pick 6 numbers)
 - [x] Quick pick functionality
@@ -11,6 +11,10 @@
 - [x] Winning number generation and display
 - [x] Prize calculation and distribution
 - [x] Results page with draw history
+- [x] Enhanced Results page with live jackpot display
+- [x] Rollover amount display for next draw
+- [x] Winner wallet addresses from last 4 draws
+- [x] Smart contract functions for winner data retrieval
 
 ### UI/UX Improvements
 - [x] Kaspa branding and color scheme (turquoise blue)
@@ -80,8 +84,11 @@
 - [ ] Environment configuration
 
 ## Notes
-- Current ticket price: 10 KAS
+- Current ticket price: 0.1 KAS (reverted from 10 KAS due to transaction failures)
 - Lottery numbers: 1-49 (pick 6)
 - Kaspa turquoise theme implemented
 - BlockDAG/GhostDAG terminology integrated
 - Smart contract deployed and functional
+- New contract address: 0x12Ca0732D05d3b3cf9E7Cf0A0A32fEA11B1eF6dD
+- Enhanced Results page with live on-chain data
+- Winner tracking for last 4 draws implemented

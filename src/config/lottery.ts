@@ -136,8 +136,27 @@ export const LOTTERY_ABI = [
     stateMutability: 'view',
     inputs: [{ name: 'drawId', type: 'uint256' }],
     outputs: [{ name: '', type: 'uint256[]' }]
+  },
+  {
+    type: 'function',
+    name: 'getDrawWinners',
+    stateMutability: 'view',
+    inputs: [{ name: 'drawId', type: 'uint256' }],
+    outputs: [
+      { name: 'winners', type: 'address[]' },
+      { name: 'matchCounts', type: 'uint256[]' },
+      { name: 'prizeAmounts', type: 'uint256[]' },
+      { name: 'claimed', type: 'bool[]' }
+    ]
+  },
+  {
+    type: 'function',
+    name: 'getRolloverAmount',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: 'rolloverAmount', type: 'uint256' }]
   }
 ] as const
 
 // Contract address - will be updated after deployment
-export const LOTTERY_CONTRACT_ADDRESS = '0xA04A32f3558cE6862ff7989eCEA2B23987AE08b4'
+export const LOTTERY_CONTRACT_ADDRESS = '0x12Ca0732D05d3b3cf9E7Cf0A0A32fEA11B1eF6dD'

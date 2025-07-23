@@ -1,5 +1,83 @@
 # KasDraw Development Log
 
+## 2024-12-19 - Enhanced Results Page with Live On-Chain Data
+
+### Major Enhancements
+- **Enhanced Results Page**: Added live jackpot display, rollover amounts, and winner wallet addresses
+- **Smart Contract Updates**: Added `getDrawWinners` and `getRolloverAmount` functions
+- **New Contract Deployment**: Deployed updated contract with enhanced winner tracking
+- **Live Data Integration**: All data now sourced directly from blockchain for transparency
+
+### Technical Implementation
+
+#### Smart Contract Enhancements
+- **New Functions Added**:
+  - `getDrawWinners(uint256 drawId)` - Returns winner addresses, match counts, prize amounts, and claim status
+  - `getRolloverAmount()` - Returns current accumulated jackpot for next draw
+- **Contract Address**: `0x12Ca0732D05d3b3cf9E7Cf0A0A32fEA11B1eF6dD`
+- **Ticket Price**: Maintained at 0.1 KAS (working configuration)
+
+#### Frontend Enhancements
+
+**New Hook: useWinnerData.ts**
+- `useDrawWinners(drawId)` - Fetches winner data for specific draw
+- `useRolloverAmount()` - Gets current rollover amount with auto-refresh
+- `useLastFourDrawsWinners()` - Aggregates winners from last 4 draws
+- Real-time data updates every 10-30 seconds
+
+**Enhanced Results.tsx**
+- **Live Jackpot Display**: Real-time current jackpot from smart contract
+- **Rollover Information**: Shows amount available for next draw
+- **Winner Addresses Section**: Displays wallet addresses from last 4 draws with:
+  - Draw number and match count
+  - Prize amounts and claim status
+  - Responsive design with Kaspa theming
+- **Improved Loading States**: Better UX with skeleton loaders
+
+#### Configuration Updates
+- **Updated ABI**: Added new function signatures to `lottery.ts`
+- **Contract Address**: Updated throughout application
+- **Environment Variables**: Updated `.env` with new contract address
+
+### Features Added
+1. **Live Current Jackpot**: Real-time display matching main page
+2. **Rollover Amount**: Shows KAS value rolling to next draw
+3. **Winner Wallet Addresses**: Last 4 draws with full transparency
+4. **Prize Tracking**: Individual prize amounts and claim status
+5. **Responsive Design**: Mobile-friendly winner display
+6. **Auto-Refresh**: Live data updates without manual refresh
+
+### Data Sources
+- ✅ All data sourced from smart contract (on-chain)
+- ✅ No mock or static data used
+- ✅ Real-time updates via Wagmi hooks
+- ✅ Transparent winner verification
+
+### Testing Status
+- ✅ Smart contract compilation successful
+- ✅ Contract deployment completed
+- ✅ Frontend integration working
+- ✅ Live data display functional
+- ✅ Winner data retrieval operational
+- ✅ No browser errors detected
+
+### Files Modified
+1. `contracts/KasDrawLottery.sol` - Added winner tracking functions
+2. `src/config/lottery.ts` - Updated ABI and contract address
+3. `src/hooks/useWinnerData.ts` - New hook for winner data
+4. `src/pages/Results.tsx` - Enhanced with live data display
+5. `.env` - Updated contract address
+6. `tasks.md` - Updated progress tracking
+7. `log.md` - This documentation
+
+### Repository Status
+- ✅ All changes committed and ready for push
+- ✅ Documentation updated
+- ✅ Contract verified and deployed
+- ✅ Frontend enhancements complete
+
+---
+
 ## 2024-12-19 - Major UI Overhaul and Kaspa Integration
 
 ### Changes Made

@@ -365,6 +365,63 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             paused()
         );
     }
+
+    /**
+     * @dev Get winner addresses for a specific draw
+     * @param drawId The draw ID to get winners for
+     * @return winners Array of winner addresses with their match counts and prize amounts
+     */
+    function getDrawWinners(uint256 drawId) external view returns (
+        address[] memory winners,
+        uint256[] memory matchCounts,
+        uint256[] memory prizeAmounts,
+        bool[] memory claimed
+    ) {
+        require(draws[drawId].executed, "Draw not executed yet");
+        
+        uint256[] memory ticketIds = drawTickets[drawId];
+        uint256 winnerCount = 0;
+        
+        // First pass: count winners
+        for (uint256 i = 0; i < ticketIds.length; i++) {
+            uint256 ticketId = ticketIds[i];
+            uint256 matches = _countMatches(tickets[ticketId].numbers, draws[drawId].winningNumbers);
+            if (matches >= 3) {
+                winnerCount++;
+            }
+        }
+        
+        // Initialize arrays
+        winners = new address[](winnerCount);
+        matchCounts = new uint256[](winnerCount);
+        prizeAmounts = new uint256[](winnerCount);
+        claimed = new bool[](winnerCount);
+        
+        // Second pass: populate winner data
+        uint256 index = 0;
+        for (uint256 i = 0; i < ticketIds.length; i++) {
+            uint256 ticketId = ticketIds[i];
+            uint256 matches = _countMatches(tickets[ticketId].numbers, draws[drawId].winningNumbers);
+            
+            if (matches >= 3) {
+                winners[index] = tickets[ticketId].player;
+                matchCounts[index] = matches;
+                prizeAmounts[index] = draws[drawId].prizeAmounts[matches];
+                claimed[index] = tickets[ticketId].claimed;
+                index++;
+            }
+        }
+        
+        return (winners, matchCounts, prizeAmounts, claimed);
+    }
+
+    /**
+     * @dev Get rollover amount for next draw
+     * @return rolloverAmount The amount that will be added to next draw's jackpot
+     */
+    function getRolloverAmount() external view returns (uint256 rolloverAmount) {
+        return accumulatedJackpot;
+    }
     
     // Internal functions
     
