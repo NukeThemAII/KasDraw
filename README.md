@@ -11,13 +11,13 @@ A decentralized lottery application built on the Kasplex EVM testnet, featuring 
 - **Enhanced UI**: Kaspa.org-inspired design with vibrant jackpot display
 - **MetaMask Integration**: Seamless wallet connection and transactions
 - **Real-time Updates**: Live jackpot and draw information
-- **Optimized Pricing**: 0.1 KAS per ticket for accessibility
+- **Updated Pricing**: 10 KAS per ticket for enhanced prize pools
 
 ## 🎮 How to Play
 
 1. **Connect Wallet**: Connect your MetaMask wallet to the Kasplex testnet
 2. **Select Numbers**: Choose 6 numbers from 1-49 or use Quick Pick
-3. **Purchase Tickets**: Buy tickets for 0.1 KAS each
+3. **Purchase Tickets**: Buy tickets for 10 KAS each
 4. **Wait for Draw**: Draws occur twice weekly (Wednesday & Saturday at 8 PM)
 5. **Claim Prizes**: Check results and claim any winnings
 
@@ -96,7 +96,7 @@ After deployment, verify the contract on the Kasplex block explorer for transpar
 ## 🎯 Game Rules
 
 ### Ticket Purchase
-- **Price**: 0.1 KAS per ticket
+- **Price**: 10 KAS per ticket
 - **Numbers**: Select 6 unique numbers from 1-49
 - **Multiple Tickets**: Purchase multiple tickets in one transaction
 
@@ -192,12 +192,15 @@ The admin dashboard provides:
 
 ## 📝 Changelog
 
-### Latest Updates (2025-01-23)
+### Latest Updates (2025-07-23)
 
-#### 🔧 Bug Fixes
-- **Fixed Transaction Failures**: Reverted ticket price from 10 KAS to 0.1 KAS to resolve "Incorrect payment amount" errors
-- **Contract Redeployment**: New contract deployed at `0xA04A32f3558cE6862ff7989eCEA2B23987AE08b4`
-- **Frontend Sync**: Updated frontend configuration to match new contract address
+#### 🚀 Major Updates
+- **Ticket Price Updated**: Changed from 0.1 KAS to 10 KAS for enhanced prize pools
+- **Results Page Fixed**: Resolved white screen issue with comprehensive error handling
+- **Security Audit Completed**: Full security review with HIGH security rating
+- **Contract Redeployment**: New contract deployed at `0xAcef979AB3D7b50657a8334a85407B5c6840F568`
+- **Enhanced Error Handling**: Improved RPC connection resilience and user feedback
+- **Simplified UI**: Streamlined Results page for better user experience
 
 #### 🎨 UI Enhancements
 - **Enhanced Jackpot Display**: Redesigned jackpot section with vibrant Kaspa.org-inspired colors
