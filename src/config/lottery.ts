@@ -5,7 +5,7 @@ export const ADMIN_ADDRESS = '0x71d7aCcfB0dFB579b8f00de612890FB875E16eef'
 
 // Lottery game constants
 export const LOTTERY_CONFIG = {
-  TICKET_PRICE: '10', // KAS
+  TICKET_PRICE: '0.1', // KAS
   MIN_NUMBER: 1,
   MAX_NUMBER: 49,
   NUMBERS_PER_TICKET: 6,
@@ -140,4 +140,4 @@ export const LOTTERY_ABI = [
 ] as const
 
 // Contract address - will be updated after deployment
-export const LOTTERY_CONTRACT_ADDRESS = '0x90450a72f9827AB047674a01c422d6DEA7772D63'
+export const LOTTERY_CONTRACT_ADDRESS = '0xA04A32f3558cE6862ff7989eCEA2B23987AE08b4'

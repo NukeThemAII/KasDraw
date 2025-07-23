@@ -7,13 +7,15 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Kaspa Turquoise Blue Theme */
-  --kaspa-turquoise: #40E0D0;
-  --kaspa-light-blue: #00D4E6;
-  --kaspa-dark-blue: #0099A8;
-  --kaspa-ghost: #E0F8FF;
-  --kaspa-blockdag: #1A365D;
-  --kaspa-accent: #2DD4BF;
+  /* Enhanced Kaspa.org-inspired Theme */
+  --kaspa-turquoise: #10B981;
+  --kaspa-light-blue: #06B6D4;
+  --kaspa-dark-blue: #0891B2;
+  --kaspa-ghost: #ECFDF5;
+  --kaspa-blockdag: #064E3B;
+  --kaspa-accent: #14B8A6;
+  --kaspa-gold: #F59E0B;
+  --kaspa-emerald: #059669;
   
   font-synthesis: none;
   text-rendering: optimizeLegibility;

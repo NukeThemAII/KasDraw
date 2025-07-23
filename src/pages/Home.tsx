@@ -57,17 +57,30 @@ const Home = () => {
         </p>
         
         {/* Current Jackpot */}
-        <div className="bg-gradient-to-r from-cyan-500 to-teal-600 rounded-2xl p-8 text-white mb-8 blockdag-pattern ghost-glow">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <Trophy className="w-8 h-8" />
-            <span className="text-2xl font-semibold">BlockDAG Jackpot</span>
+        <div className="relative bg-gradient-to-br from-emerald-400 via-cyan-500 to-blue-600 rounded-3xl p-10 text-white mb-8 overflow-hidden">
+          {/* Background pattern */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent transform rotate-45 animate-pulse"></div>
           </div>
-          <div className="text-4xl md:text-6xl font-bold mb-2">
-            {currentJackpot} KAS
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-center space-x-4 mb-6">
+              <Trophy className="w-10 h-10 text-yellow-300" />
+              <span className="text-3xl font-bold tracking-wide">CURRENT JACKPOT</span>
+            </div>
+            <div className="text-6xl md:text-8xl font-black mb-4 text-center">
+              <span className="bg-gradient-to-r from-yellow-200 via-yellow-100 to-white bg-clip-text text-transparent drop-shadow-2xl">
+                {currentJackpot}
+              </span>
+              <span className="text-4xl md:text-5xl ml-4 text-yellow-200 font-bold">KAS</span>
+            </div>
+            <div className="text-xl text-cyan-100 text-center font-semibold">
+              🎯 Next draw in: <span className="text-yellow-200 font-bold">{nextDrawTime}</span>
+            </div>
           </div>
-          <div className="text-cyan-100">
-            Next GhostDAG draw in: {nextDrawTime}
-          </div>
+          
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-3xl shadow-2xl" style={{boxShadow: '0 0 60px rgba(16, 185, 129, 0.6), inset 0 0 60px rgba(255, 255, 255, 0.1)'}}></div>
         </div>
         
         <Link

@@ -8,9 +8,10 @@ A decentralized lottery application built on the Kasplex EVM testnet, featuring 
 - **Rollover Jackpots**: Unclaimed jackpots roll over to the next draw
 - **Admin Fee Structure**: 1% of ticket sales for platform maintenance
 - **Secure Smart Contract**: Built with OpenZeppelin standards
-- **Modern UI**: Responsive design with Kaspa-themed styling
+- **Enhanced UI**: Kaspa.org-inspired design with vibrant jackpot display
 - **MetaMask Integration**: Seamless wallet connection and transactions
 - **Real-time Updates**: Live jackpot and draw information
+- **Optimized Pricing**: 0.1 KAS per ticket for accessibility
 
 ## 🎮 How to Play
 
@@ -188,6 +189,26 @@ The admin dashboard provides:
 - **Real-time Updates**: Live jackpot and countdown
 - **Transaction Feedback**: Clear success/error messages
 - **Accessibility**: WCAG compliant design
+
+## 📝 Changelog
+
+### Latest Updates (2025-01-23)
+
+#### 🔧 Bug Fixes
+- **Fixed Transaction Failures**: Reverted ticket price from 10 KAS to 0.1 KAS to resolve "Incorrect payment amount" errors
+- **Contract Redeployment**: New contract deployed at `0xA04A32f3558cE6862ff7989eCEA2B23987AE08b4`
+- **Frontend Sync**: Updated frontend configuration to match new contract address
+
+#### 🎨 UI Enhancements
+- **Enhanced Jackpot Display**: Redesigned jackpot section with vibrant Kaspa.org-inspired colors
+- **Improved Visibility**: Larger, more prominent jackpot numbers with gradient text effects
+- **Better Contrast**: Enhanced color scheme for better readability
+- **Animated Elements**: Added subtle animations and glow effects for visual appeal
+
+#### 🎯 Technical Improvements
+- **Color Palette Update**: Refreshed CSS variables with Kaspa.org-inspired theme
+- **Responsive Design**: Improved mobile and desktop jackpot display
+- **Performance**: Optimized rendering and reduced bundle size
 
 ## 🧪 Testing
 
