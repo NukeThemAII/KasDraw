@@ -164,6 +164,56 @@ VITE_CHAIN_ID=167012
 - **Input Validation**: Comprehensive number validation
 - **Safe Math**: Overflow protection with Solidity 0.8+
 
+## 🎲 Random Number Generation
+
+### Current Method: Enhanced Fisher-Yates Shuffle
+
+KasDraw uses a sophisticated random number generation system that combines multiple entropy sources for better randomness distribution:
+
+#### **Algorithm**: Fisher-Yates Shuffle
+- **Purpose**: Ensures uniform distribution of selected numbers
+- **Process**: Selects 6 unique numbers from 1-49 without replacement
+- **Guarantee**: Each number has equal probability of selection
+
+#### **Entropy Sources**
+```solidity
+// Multiple blockchain variables combined for entropy
+uint256 baseEntropy = uint256(keccak256(abi.encodePacked(
+    block.timestamp,    // Current block time
+    block.difficulty,   // Network difficulty
+    block.number,       // Current block number
+    block.coinbase,     // Miner address
+    msg.sender,         // Function caller
+    currentDrawId,      // Draw identifier
+    totalTicketsSold,   // Ticket sales count
+    address(this).balance, // Contract balance
+    gasleft()          // Remaining gas
+)));
+```
+
+#### **Security Considerations**
+- **⚠️ Medium Risk**: Uses on-chain variables for randomness
+- **Mitigation**: Multiple entropy sources reduce predictability
+- **Enhancement**: Additional entropy generated for each number selection
+- **Future**: Consider Chainlink VRF for production deployment
+
+#### **Process Flow**
+1. **Initialize**: Create array of all possible numbers (1-49)
+2. **Generate Base Entropy**: Combine multiple blockchain variables
+3. **Select Numbers**: Use Fisher-Yates algorithm with enhanced entropy
+4. **Sort Results**: Return numbers in ascending order for consistency
+
+#### **Advantages**
+- ✅ **Uniform Distribution**: Each number has equal selection probability
+- ✅ **No Duplicates**: Algorithm guarantees unique number selection
+- ✅ **Enhanced Entropy**: Multiple sources reduce predictability
+- ✅ **Gas Efficient**: Optimized for blockchain execution
+
+#### **Limitations**
+- ⚠️ **Miner Influence**: Potential manipulation on some networks
+- ⚠️ **Predictability**: Advanced actors might predict some variables
+- 💡 **Recommendation**: Upgrade to Chainlink VRF for maximum security
+
 ## 🌐 Network Configuration
 
 ### Kasplex EVM Testnet
