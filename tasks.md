@@ -13,6 +13,9 @@
 - [x] Implemented live data updates with refetch intervals
 - [x] Created comprehensive automation script
 - [x] Updated AUTOMATION_GUIDE.md with production-ready instructions
+- [x] Redesigned Draw page layout - made timer smaller and moved Execute Draw to right side
+- [x] Added comprehensive timer documentation to README.md explaining accuracy and on-chain data integration
+- [x] Updated tasks.md with latest UI improvements and documentation updates
 
 ### ✅ Core Functionality Completed
 - [x] Smart contract implementation with 10 KAS ticket price (updated from 0.1 KAS)

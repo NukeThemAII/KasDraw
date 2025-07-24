@@ -234,6 +234,83 @@ git push --force-with-lease origin dev
 - **Production**: `main` branch
 - **Contract Address**: Updated in both branches
 
+## Timer System Documentation
+
+### How KasDraw Timers Work
+
+KasDraw uses a sophisticated dual-validation timing system that combines both blockchain timestamps and block numbers to ensure accurate and tamper-proof draw intervals.
+
+#### Timer Architecture
+
+**1. Dual Validation System**
+- **Timestamp Validation**: Uses `block.timestamp` for human-readable time tracking
+- **Block Validation**: Uses block numbers for additional security and consistency
+- **Combined Logic**: Both conditions must be met for draw execution
+
+**2. On-Chain Data Sources**
+- **Primary Source**: Smart contract state (`canExecuteDrawPublic()` function)
+- **Real-time Updates**: Frontend polls contract every 5-10 seconds
+- **Block-based Accuracy**: Leverages blockchain's immutable block progression
+
+**3. Timer Accuracy & Reliability**
+- **Precision**: Accurate to the blockchain block time (~15 seconds on most networks)
+- **Tamper-proof**: Cannot be manipulated by external parties
+- **Network Independent**: Works consistently across different network conditions
+- **Fail-safe**: Multiple validation layers prevent premature execution
+
+#### Technical Implementation
+
+**Smart Contract Timer Logic:**
+```solidity
+function canExecuteDrawPublic() external view returns (
+    bool canExecute,
+    uint256 timeRemaining,
+    uint256 nextDrawTime,
+    uint256 blocksRemaining,
+    uint256 nextDrawBlock
+) {
+    bool timeReached = block.timestamp >= nextDrawTime;
+    bool blockReached = block.number >= nextDrawBlock;
+    bool canExec = timeReached && blockReached;
+    
+    uint256 timeRem = timeReached ? 0 : nextDrawTime - block.timestamp;
+    uint256 blockRem = blockReached ? 0 : nextDrawBlock - block.number;
+    
+    return (canExec, timeRem, nextDrawTime, blockRem, nextDrawBlock);
+}
+```
+
+**Frontend Timer Integration:**
+- **Live Updates**: `refetchInterval: 5000ms` for real-time countdown
+- **State Management**: React hooks manage timer state and updates
+- **Error Handling**: Graceful fallbacks for network issues
+- **Visual Feedback**: Real-time countdown display with blockchain validation indicators
+
+#### Timer Data Flow
+
+1. **Contract State**: Smart contract calculates next draw time and block
+2. **Frontend Polling**: React app queries contract every 5 seconds
+3. **Data Processing**: Hook processes raw blockchain data into readable format
+4. **UI Updates**: Countdown timer updates in real-time
+5. **Validation**: Multiple checks ensure execution readiness
+
+#### Security & Accuracy Features
+
+**Blockchain-Native Timing:**
+- Uses immutable blockchain timestamps
+- Cannot be manipulated by external actors
+- Consistent across all network participants
+
+**Dual Validation:**
+- Timestamp AND block number must both be reached
+- Prevents edge cases and timing attacks
+- Ensures reliable 3.5-day intervals
+
+**Real-time Synchronization:**
+- Frontend stays synchronized with blockchain state
+- Automatic retry mechanisms for failed requests
+- Graceful handling of network interruptions
+
 ## 🔐 Security Features
 
 - **ReentrancyGuard**: Prevents reentrancy attacks

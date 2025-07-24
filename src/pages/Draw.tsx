@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Clock, Zap, Users, Trophy } from 'lucide-react'
+import { Clock, Zap, Users, Trophy, Timer } from 'lucide-react'
 import { useLotteryContract } from '../hooks/useLotteryContract'
 import { toast } from 'sonner'
 
@@ -24,53 +24,23 @@ const Draw: React.FC = () => {
     seconds: number
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
-  const [nextDrawTime, setNextDrawTime] = useState<Date | null>(null)
   const [isTimerReady, setIsTimerReady] = useState(false)
-  const [contractValidated, setContractValidated] = useState(false)
 
-  // Get next draw time from smart contract for enhanced security (with block validation)
+  // Use blockchain data directly for countdown timer
   useEffect(() => {
-    if (contractNextDrawTime && contractNextDrawTime > 0) {
-      const contractNextDraw = new Date(contractNextDrawTime * 1000)
-      setNextDrawTime(contractNextDraw)
-      setContractValidated(true)
-    } else if (lotteryState?.nextDrawTime) {
-      // Fallback to lottery state if direct contract data not available
-      const contractNextDraw = new Date(lotteryState.nextDrawTime * 1000)
-      setNextDrawTime(contractNextDraw)
-      setContractValidated(true)
-    }
-  }, [contractNextDrawTime, lotteryState])
+    if (timeRemaining && timeRemaining > 0) {
+      const days = Math.floor(timeRemaining / (24 * 60 * 60))
+      const hours = Math.floor((timeRemaining % (24 * 60 * 60)) / (60 * 60))
+      const minutes = Math.floor((timeRemaining % (60 * 60)) / 60)
+      const seconds = timeRemaining % 60
 
-  // Enhanced countdown timer with smart contract validation
-  useEffect(() => {
-    if (!nextDrawTime || !contractValidated) {
+      setTimeLeft({ days, hours, minutes, seconds })
       setIsTimerReady(false)
-      return
+    } else {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+      setIsTimerReady(true)
     }
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime()
-      const distance = nextDrawTime.getTime() - now
-
-      if (distance > 0) {
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24))
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000)
-
-        setTimeLeft({ days, hours, minutes, seconds })
-        setIsTimerReady(false)
-      } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-        setIsTimerReady(true)
-        // Double-check with smart contract before allowing execution
-        refetchCanExecuteDrawPublic()
-      }
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [nextDrawTime, contractValidated, refetchCanExecuteDrawPublic])
+  }, [timeRemaining])
 
   const handleExecuteDraw = async () => {
     try {
@@ -91,13 +61,7 @@ const Draw: React.FC = () => {
 
   // Enhanced security: Multiple validation layers with block-based timing to prevent premature execution
   const isDrawReady = Boolean(
-    contractValidated && // Smart contract data loaded
-    isTimerReady && // Local timer confirms time is up
     canExecuteDrawPublic && // Smart contract confirms execution is allowed (timestamp + block validation)
-    timeLeft.days === 0 && 
-    timeLeft.hours === 0 && 
-    timeLeft.minutes === 0 && 
-    timeLeft.seconds === 0 &&
     lotteryState?.canExecute && // Additional smart contract validation
     (blocksRemaining === undefined || blocksRemaining <= 0) && // Block-based validation
     (timeRemaining === undefined || timeRemaining <= 0) // Direct time remaining validation
@@ -119,137 +83,149 @@ const Draw: React.FC = () => {
           </p>
         </div>
 
-        {/* Main Content */}
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Countdown Timer */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <div className="flex items-center justify-center mb-6">
-              <Clock className="w-8 h-8 text-yellow-400 mr-3" />
-              <h2 className="text-2xl font-bold text-white">Next Draw Countdown</h2>
+        {/* Timer and Execute Draw Section */}
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Compact Timer - Left Side (Smaller) */}
+            <div className="lg:w-1/3">
+              <div className="bg-gradient-to-br from-teal-500/20 via-cyan-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl p-4 border-2 border-teal-400/30 shadow-xl">
+                <div className="flex items-center justify-center mb-3">
+                  <Timer className="w-6 h-6 text-teal-400 mr-2" />
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+                    Next Draw
+                  </h2>
+                </div>
+                
+                {/* Compact Timer Display */}
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  <div className="bg-gradient-to-br from-teal-600/30 to-cyan-600/30 rounded-lg p-2 border border-teal-400/40">
+                    <div className="text-xl font-black text-teal-300 font-mono tracking-tight text-center">
+                      {timeLeft.days.toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-xs text-teal-200 font-semibold text-center">Days</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-teal-600/30 to-cyan-600/30 rounded-lg p-2 border border-teal-400/40">
+                    <div className="text-xl font-black text-teal-300 font-mono tracking-tight text-center">
+                      {timeLeft.hours.toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-xs text-teal-200 font-semibold text-center">Hours</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-teal-600/30 to-cyan-600/30 rounded-lg p-2 border border-teal-400/40">
+                    <div className="text-xl font-black text-teal-300 font-mono tracking-tight text-center">
+                      {timeLeft.minutes.toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-xs text-teal-200 font-semibold text-center">Minutes</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-teal-600/30 to-cyan-600/30 rounded-lg p-2 border border-teal-400/40">
+                    <div className="text-xl font-black text-teal-300 font-mono tracking-tight text-center">
+                      {timeLeft.seconds.toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-xs text-teal-200 font-semibold text-center">Seconds</div>
+                  </div>
+                </div>
+
+                {/* Compact Blockchain Data Display */}
+                <div className="text-center space-y-1">
+                  {contractNextDrawTime && contractNextDrawTime > 0 && (
+                    <p className="text-xs text-teal-100">
+                      Next: <span className="text-teal-300 font-bold">
+                        {new Date(contractNextDrawTime * 1000).toLocaleDateString()}
+                      </span>
+                    </p>
+                  )}
+                  
+                  {/* Compact Blockchain Indicators */}
+                  <div className="flex justify-center space-x-2">
+                    <div className={`px-2 py-1 rounded border transition-all duration-300 ${
+                      timeRemaining !== undefined && timeRemaining <= 0 
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/50' 
+                        : 'bg-orange-500/20 text-orange-300 border-orange-400/50'
+                    }`}>
+                      <div className="text-xs font-semibold">Time: {timeRemaining !== undefined ? (timeRemaining <= 0 ? '✓' : `${timeRemaining}s`) : '...'}</div>
+                    </div>
+                    <div className={`px-2 py-1 rounded border transition-all duration-300 ${
+                      blocksRemaining !== undefined && blocksRemaining <= 0 
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/50' 
+                        : 'bg-orange-500/20 text-orange-300 border-orange-400/50'
+                    }`}>
+                      <div className="text-xs font-semibold">Blocks: {blocksRemaining !== undefined ? (blocksRemaining <= 0 ? '✓' : blocksRemaining) : '...'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-yellow-400">{timeLeft.days}</div>
-                <div className="text-sm text-gray-300">Days</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-yellow-400">{timeLeft.hours}</div>
-                <div className="text-sm text-gray-300">Hours</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-yellow-400">{timeLeft.minutes}</div>
-                <div className="text-sm text-gray-300">Minutes</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-4">
-                <div className="text-3xl font-bold text-yellow-400">{timeLeft.seconds}</div>
-                <div className="text-sm text-gray-300">Seconds</div>
-              </div>
-            </div>
 
-            {nextDrawTime && (
-              <div className="mt-6 text-center space-y-2">
-                <p className="text-gray-300">
-                  Next draw available: <span className="text-white font-semibold">
-                    {nextDrawTime.toLocaleString()}
-                  </span>
-                </p>
-                {/* Enhanced security indicators */}
-                <div className="flex justify-center space-x-4 text-xs">
-                  <div className={`px-2 py-1 rounded ${
-                    timeRemaining !== undefined && timeRemaining <= 0 
-                      ? 'bg-green-500/20 text-green-400' 
-                      : 'bg-orange-500/20 text-orange-400'
-                  }`}>
-                    Time: {timeRemaining !== undefined ? (timeRemaining <= 0 ? '✓' : `${timeRemaining}s`) : '...'}
+            {/* Execute Draw Section - Right Side */}
+            <div className="lg:w-2/3">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 h-full">
+                <div className="flex items-center justify-center mb-4">
+                  <Zap className="w-8 h-8 text-yellow-400 mr-3" />
+                  <h2 className="text-2xl font-bold text-white">Execute Draw</h2>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Current Status */}
+                  <div className="text-center">
+                    <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
+                      isDrawReady 
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                    }`}>
+                      {isDrawReady ? 'Draw Ready!' : 'Draw Not Ready'}
+                    </div>
                   </div>
-                  <div className={`px-2 py-1 rounded ${
-                    blocksRemaining !== undefined && blocksRemaining <= 0 
-                      ? 'bg-green-500/20 text-green-400' 
-                      : 'bg-orange-500/20 text-orange-400'
-                  }`}>
-                    Blocks: {blocksRemaining !== undefined ? (blocksRemaining <= 0 ? '✓' : blocksRemaining) : '...'}
+
+                  {/* Reward Info */}
+                  <div className="bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border-2 border-teal-400/30 rounded-xl p-4">
+                    <div className="flex items-center justify-center mb-2">
+                      <Trophy className="w-5 h-5 text-teal-400 mr-2" />
+                      <span className="text-teal-400 font-bold">Executor Reward</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-2xl font-black text-teal-300 font-mono">
+                        {lotteryState ? 
+                          `${(parseFloat(lotteryState.accumulatedJackpot || '0') * 0.001).toFixed(3)} KAS` : 
+                          '0.100 KAS'
+                        }
+                      </span>
+                      <p className="text-xs text-teal-200 mt-1">
+                        0.1% of jackpot (min: 0.1, max: 10 KAS)
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Execute Button */}
+                  <button
+                    onClick={handleExecuteDraw}
+                    disabled={!isDrawReady || isExecutingDraw}
+                    className={`w-full py-3 px-4 rounded-xl font-bold transition-all duration-300 ${
+                      isDrawReady && !isExecutingDraw
+                        ? 'bg-gradient-to-r from-teal-400 to-cyan-500 text-black hover:from-teal-300 hover:to-cyan-400 transform hover:scale-105 shadow-lg'
+                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                    }`}>
+                    {isExecutingDraw ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
+                        Executing...
+                      </div>
+                    ) : isDrawReady ? (
+                      `Execute & Earn ${
+                        lotteryState ? 
+                          Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot || '0') * 0.001)).toFixed(3) : 
+                          '0.100'
+                      } KAS`
+                    ) : (
+                      'Wait for Interval'
+                    )}
+                  </button>
+
+                  {!isDrawReady && (
+                    <p className="text-xs text-gray-400 text-center">
+                      Draw available after 3.5-day interval
+                    </p>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Execute Draw Section */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <div className="flex items-center justify-center mb-6">
-              <Zap className="w-8 h-8 text-yellow-400 mr-3" />
-              <h2 className="text-2xl font-bold text-white">Execute Draw</h2>
-            </div>
-
-            <div className="space-y-6">
-              {/* Current Status */}
-              <div className="text-center">
-                <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
-                  isDrawReady 
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                    : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                }`}>
-                  {isDrawReady ? 'Draw Ready!' : 'Draw Not Ready'}
-                </div>
-              </div>
-
-              {/* Reward Info */}
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                <div className="flex items-center justify-center mb-2">
-                  <Trophy className="w-5 h-5 text-yellow-400 mr-2" />
-                  <span className="text-yellow-400 font-semibold">Executor Reward</span>
-                </div>
-                <div className="text-center">
-                  <span className="text-2xl font-bold text-white">
-                    {lotteryState ? 
-                      `${(parseFloat(lotteryState.accumulatedJackpot || '0') * 0.001).toFixed(3)} KAS` : 
-                      '0.100 KAS'
-                    }
-                  </span>
-                  <p className="text-sm text-gray-300 mt-1">
-                    0.1% of current jackpot (min: 0.1 KAS, max: 10 KAS)
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Automatically sent to the executor's wallet
-                  </p>
-                </div>
-              </div>
-
-              {/* Execute Button */}
-              <button
-                onClick={handleExecuteDraw}
-                disabled={!isDrawReady || isExecutingDraw || !contractValidated}
-                className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 ${
-                  isDrawReady && !isExecutingDraw && contractValidated
-                    ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:from-yellow-300 hover:to-orange-400 transform hover:scale-105 shadow-lg hover:shadow-xl'
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                }`}>
-                {!contractValidated ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400 mr-2"></div>
-                    Loading Contract Data...
-                  </div>
-                ) : isExecutingDraw ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
-                    Executing Draw...
-                  </div>
-                ) : isDrawReady ? (
-                  `Execute Draw & Earn ${lotteryState ? 
-                    Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot || '0') * 0.001)).toFixed(3) : 
-                    '0.100'
-                  } KAS`
-                ) : (
-                  'Wait for Draw Interval'
-                )}
-              </button>
-
-              {!isDrawReady && (
-                <p className="text-sm text-gray-400 text-center">
-                  The draw can only be executed after the 3.5-day interval has passed
-                </p>
-              )}
             </div>
           </div>
         </div>

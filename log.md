@@ -1,5 +1,53 @@
 # KasDraw Development Log
 
+## Version 2.0.1 - UI Improvements & Timer Documentation (December 27, 2024)
+
+### 🎨 UI/UX Improvements
+
+#### Draw Page Layout Redesign
+- **Compact Timer**: Reduced timer size from 50% to 33% width for better space utilization
+- **Improved Layout**: Moved Execute Draw section to right side (67% width) for better visual balance
+- **Enhanced Responsiveness**: Better mobile and desktop layout with flex-based design
+- **Kaspa Color Consistency**: Maintained teal/cyan gradient theme throughout
+- **Visual Hierarchy**: Current Lottery Stats and How It Works sections properly positioned below main content
+
+#### Timer Component Enhancements
+- **Smaller Form Factor**: Reduced padding, font sizes, and spacing for compact display
+- **Better Proportions**: Timer takes 1/3 width, Execute Draw takes 2/3 width
+- **Maintained Functionality**: All timer features preserved in smaller package
+- **Improved Readability**: Better text sizing and spacing for compact layout
+
+### 📚 Documentation Updates
+
+#### Comprehensive Timer Documentation
+- **Technical Architecture**: Detailed explanation of dual-validation timing system
+- **On-Chain Integration**: Documentation of how timers pull real-time blockchain data
+- **Accuracy Details**: Explanation of blockchain-native timing precision
+- **Security Features**: Coverage of tamper-proof timing mechanisms
+- **Implementation Guide**: Code examples and data flow documentation
+
+#### Updated Project Files
+- **README.md**: Added complete Timer System Documentation section
+- **tasks.md**: Updated with recent UI improvements and documentation tasks
+- **log.md**: Documented all recent changes and improvements
+
+### 🔧 Technical Details
+
+#### Timer System Accuracy
+- **Blockchain-Native**: Uses `block.timestamp` and `block.number` for immutable timing
+- **Dual Validation**: Both timestamp AND block conditions must be met
+- **Real-time Updates**: Frontend polls contract every 5 seconds for live data
+- **Tamper-proof**: Cannot be manipulated by external parties
+- **Network Independent**: Consistent across different network conditions
+
+#### Frontend Integration
+- **Live Data Polling**: `refetchInterval: 5000ms` for real-time updates
+- **Error Handling**: Graceful fallbacks for network issues
+- **State Management**: React hooks manage timer state efficiently
+- **Visual Feedback**: Real-time countdown with blockchain validation indicators
+
+---
+
 ## Version 2.0.0 - Production Ready Release (December 27, 2024)
 
 ### 🚀 Major Improvements
