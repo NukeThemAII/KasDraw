@@ -11,36 +11,62 @@ const Home = () => {
   // Use dynamic data from smart contract or fallback to static values
   const currentJackpot = lotteryState?.accumulatedJackpot ? 
     parseFloat(lotteryState.accumulatedJackpot).toLocaleString(undefined, { maximumFractionDigits: 2 }) : 
-    '125,000'
-  const totalPlayers = 1247 // This would need additional contract tracking
-  const ticketsSold = lotteryState?.totalTicketsSold || 3891
+    '0'
+  const totalPlayers = lotteryState?.totalTicketsSold ? Math.floor(lotteryState.totalTicketsSold / 3) : 0 // Estimate unique players
+  const ticketsSold = lotteryState?.totalTicketsSold || 0
 
   useEffect(() => {
-    // Calculate next draw time
-    const now = new Date()
-    const nextDraw = new Date()
-    
-    // Find next draw day (assuming Wednesday and Saturday)
-    const drawDays = [3, 6] // Wednesday = 3, Saturday = 6
-    const currentDay = now.getDay()
-    
-    let daysUntilDraw = drawDays.find(day => day > currentDay)
-    if (!daysUntilDraw) {
-      daysUntilDraw = drawDays[0] + 7 // Next week's first draw day
-    } else {
-      daysUntilDraw = daysUntilDraw - currentDay
+    const updateNextDrawTime = () => {
+      if (lotteryState?.nextDrawTime) {
+        // Use real on-chain next draw time
+        const now = Date.now() / 1000 // Current time in seconds
+        const nextDrawTimestamp = lotteryState.nextDrawTime
+        
+        if (nextDrawTimestamp > now) {
+          const timeUntilDraw = (nextDrawTimestamp - now) * 1000 // Convert to milliseconds
+          const days = Math.floor(timeUntilDraw / (1000 * 60 * 60 * 24))
+          const hours = Math.floor((timeUntilDraw % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+          const minutes = Math.floor((timeUntilDraw % (1000 * 60 * 60)) / (1000 * 60))
+          
+          setNextDrawTime(`${days}d ${hours}h ${minutes}m`)
+        } else {
+          setNextDrawTime('Draw available now!')
+        }
+      } else {
+        // Fallback calculation if on-chain data not available
+        const now = new Date()
+        const nextDraw = new Date()
+        
+        // Find next draw day (assuming Wednesday and Saturday)
+        const drawDays = [3, 6] // Wednesday = 3, Saturday = 6
+        const currentDay = now.getDay()
+        
+        let daysUntilDraw = drawDays.find(day => day > currentDay)
+        if (!daysUntilDraw) {
+          daysUntilDraw = drawDays[0] + 7 // Next week's first draw day
+        } else {
+          daysUntilDraw = daysUntilDraw - currentDay
+        }
+        
+        nextDraw.setDate(now.getDate() + daysUntilDraw)
+        nextDraw.setHours(20, 0, 0, 0) // 8 PM
+        
+        const timeUntilDraw = nextDraw.getTime() - now.getTime()
+        const days = Math.floor(timeUntilDraw / (1000 * 60 * 60 * 24))
+        const hours = Math.floor((timeUntilDraw % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+        const minutes = Math.floor((timeUntilDraw % (1000 * 60 * 60)) / (1000 * 60))
+        
+        setNextDrawTime(`${days}d ${hours}h ${minutes}m`)
+      }
     }
     
-    nextDraw.setDate(now.getDate() + daysUntilDraw)
-    nextDraw.setHours(20, 0, 0, 0) // 8 PM
+    updateNextDrawTime()
     
-    const timeUntilDraw = nextDraw.getTime() - now.getTime()
-    const days = Math.floor(timeUntilDraw / (1000 * 60 * 60 * 24))
-    const hours = Math.floor((timeUntilDraw % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-    const minutes = Math.floor((timeUntilDraw % (1000 * 60 * 60)) / (1000 * 60))
+    // Update every minute
+    const interval = setInterval(updateNextDrawTime, 60000)
     
-    setNextDrawTime(`${days}d ${hours}h ${minutes}m`)
-  }, [])
+    return () => clearInterval(interval)
+  }, [lotteryState?.nextDrawTime])
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -172,27 +198,27 @@ const Home = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg p-4 text-white text-center ghost-glow">
-            <div className="text-2xl font-bold mb-2">60%</div>
+            <div className="text-2xl font-bold mb-2">50%</div>
             <div className="text-sm">Ghost Jackpot</div>
-            <div className="text-xs opacity-90">6 matches</div>
+            <div className="text-xs opacity-90">5 matches</div>
           </div>
           
           <div className="bg-gradient-to-r from-cyan-400 to-teal-500 rounded-lg p-4 text-white text-center ghost-glow">
             <div className="text-2xl font-bold mb-2">20%</div>
             <div className="text-sm">BlockDAG Prize</div>
-            <div className="text-xs opacity-90">5 matches</div>
+            <div className="text-xs opacity-90">4 matches</div>
           </div>
           
           <div className="bg-gradient-to-r from-teal-400 to-cyan-500 rounded-lg p-4 text-white text-center ghost-glow">
             <div className="text-2xl font-bold mb-2">15%</div>
             <div className="text-sm">Ghost Prize</div>
-            <div className="text-xs opacity-90">4 matches</div>
+            <div className="text-xs opacity-90">3 matches</div>
           </div>
           
           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg p-4 text-white text-center ghost-glow">
-            <div className="text-2xl font-bold mb-2">4%</div>
+            <div className="text-2xl font-bold mb-2">10%</div>
             <div className="text-sm">Parallel Prize</div>
-            <div className="text-xs opacity-90">3 matches</div>
+            <div className="text-xs opacity-90">2 matches</div>
           </div>
         </div>
         

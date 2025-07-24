@@ -22,12 +22,12 @@ const Draw: React.FC = () => {
 
   const [nextDrawTime, setNextDrawTime] = useState<Date | null>(null)
 
-  // Calculate next draw time (7 days from now for demo)
+  // Calculate next draw time (3.5 days from now for demo)
   useEffect(() => {
     // In a real implementation, this would come from the smart contract
-    // For now, we'll simulate a 7-day countdown
+    // For now, we'll simulate a 3.5-day countdown (twice per week)
     const now = new Date()
-    const next = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+    const next = new Date(now.getTime() + 3.5 * 24 * 60 * 60 * 1000) // 3.5 days from now
     setNextDrawTime(next)
   }, [])
 
@@ -58,8 +58,12 @@ const Draw: React.FC = () => {
 
   const handleExecuteDraw = async () => {
     try {
+      const currentReward = lotteryState ? 
+        Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot) * 0.001)) : 
+        0.1
+      
       await executeDrawPublic()
-      toast.success('Draw executed successfully! You earned 0.1 KAS reward!')
+      toast.success(`Draw executed successfully! You earned ${currentReward.toFixed(3)} KAS reward!`)
       // Refetch state after execution
       refetchLotteryState()
       refetchCanExecuteDrawPublic()
@@ -82,8 +86,8 @@ const Draw: React.FC = () => {
             </span>
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Anyone can trigger the lottery draw after the 7-day interval. 
-            The executor receives a <span className="text-yellow-400 font-semibold">0.1 KAS reward</span>!
+            Anyone can trigger the lottery draw after the 3.5-day interval (twice per week). 
+            The executor receives a <span className="text-yellow-400 font-semibold">percentage-based reward</span> that grows with the jackpot!
           </p>
         </div>
 
@@ -152,8 +156,16 @@ const Draw: React.FC = () => {
                   <span className="text-yellow-400 font-semibold">Executor Reward</span>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-white">0.1 KAS</span>
+                  <span className="text-2xl font-bold text-white">
+                    {lotteryState ? 
+                      `${(parseFloat(lotteryState.accumulatedJackpot) * 0.001).toFixed(3)} KAS` : 
+                      '0.100 KAS'
+                    }
+                  </span>
                   <p className="text-sm text-gray-300 mt-1">
+                    0.1% of current jackpot (min: 0.1 KAS, max: 10 KAS)
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
                     Automatically sent to the executor's wallet
                   </p>
                 </div>
@@ -174,7 +186,10 @@ const Draw: React.FC = () => {
                     Executing Draw...
                   </div>
                 ) : isDrawReady ? (
-                  'Execute Draw & Earn 0.1 KAS'
+                  `Execute Draw & Earn ${lotteryState ? 
+                    Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot) * 0.001)).toFixed(3) : 
+                    '0.100'
+                  } KAS`
                 ) : (
                   'Wait for Draw Interval'
                 )}
@@ -182,7 +197,7 @@ const Draw: React.FC = () => {
 
               {!isDrawReady && (
                 <p className="text-sm text-gray-400 text-center">
-                  The draw can only be executed after the 7-day interval has passed
+                  The draw can only be executed after the 3.5-day interval has passed
                 </p>
               )}
             </div>
@@ -231,7 +246,7 @@ const Draw: React.FC = () => {
               </div>
               <h4 className="text-lg font-semibold text-white mb-2">Wait for Interval</h4>
               <p className="text-gray-300 text-sm">
-                Each draw has a 7-day interval. Anyone can execute the draw once this time has passed.
+                Each draw has a 3.5-day interval (twice per week). Anyone can execute the draw once this time has passed.
               </p>
             </div>
             
@@ -251,7 +266,7 @@ const Draw: React.FC = () => {
               </div>
               <h4 className="text-lg font-semibold text-white mb-2">Earn Reward</h4>
               <p className="text-gray-300 text-sm">
-                Receive 0.1 KAS as a reward for executing the draw and helping maintain the lottery system.
+                Receive 0.1% of the current jackpot (min: 0.1 KAS, max: 10 KAS) as a reward for executing the draw.
               </p>
             </div>
           </div>

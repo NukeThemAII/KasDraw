@@ -26,7 +26,7 @@ export interface DrawResult {
 }
 
 export const useDrawResults = () => {
-  // Get lottery state to determine current draw ID
+  // Get lottery state (includes totalTicketsSold)
   const { 
     data: lotteryState, 
     refetch: refetchLotteryState,
@@ -34,11 +34,18 @@ export const useDrawResults = () => {
   } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
-    functionName: 'getLotteryState',
+    functionName: 'getLotteryStats',
   })
 
-  const currentDrawId = lotteryState ? Number(lotteryState[0]) : 1
-  const totalTicketsSold = lotteryState ? Number(lotteryState[1]) : 0
+  // Get current draw ID separately
+  const { data: currentDrawIdData } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'currentDrawId',
+  })
+
+  const currentDrawId = currentDrawIdData ? Number(currentDrawIdData) : 1
+  const totalTicketsSold = lotteryState ? Number(lotteryState[2]) : 0
 
   // Get current draw data
   const { 
@@ -69,24 +76,14 @@ export const useDrawResults = () => {
     },
   })
 
-  // Get winner counts for current draw
-  const { data: winnersCount6 } = useReadContract({
-    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: LOTTERY_ABI,
-    functionName: 'getWinnersCount',
-    args: [BigInt(currentDrawId), BigInt(6)],
-    query: {
-      enabled: !!currentDrawData && currentDrawData[5], // only if draw is executed
-    },
-  })
-
+  // Get winner counts for current draw (updated for 5-number system)
   const { data: winnersCount5 } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getWinnersCount',
     args: [BigInt(currentDrawId), BigInt(5)],
     query: {
-      enabled: !!currentDrawData && currentDrawData[5],
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]), // only if draw is executed
     },
   })
 
@@ -96,7 +93,7 @@ export const useDrawResults = () => {
     functionName: 'getWinnersCount',
     args: [BigInt(currentDrawId), BigInt(4)],
     query: {
-      enabled: !!currentDrawData && currentDrawData[5],
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]),
     },
   })
 
@@ -106,28 +103,28 @@ export const useDrawResults = () => {
     functionName: 'getWinnersCount',
     args: [BigInt(currentDrawId), BigInt(3)],
     query: {
-      enabled: !!currentDrawData && currentDrawData[5],
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]),
     },
   })
 
-  // Get prize amounts for current draw
-  const { data: prizeAmount6 } = useReadContract({
+  const { data: winnersCount2 } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
-    functionName: 'getPrizeAmount',
-    args: [BigInt(currentDrawId), BigInt(6)],
+    functionName: 'getWinnersCount',
+    args: [BigInt(currentDrawId), BigInt(2)],
     query: {
-      enabled: !!currentDrawData && currentDrawData[5],
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]),
     },
   })
 
+  // Get prize amounts for current draw (updated for 5-number system)
   const { data: prizeAmount5 } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getPrizeAmount',
     args: [BigInt(currentDrawId), BigInt(5)],
     query: {
-      enabled: !!currentDrawData && currentDrawData[5],
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]),
     },
   })
 
@@ -137,7 +134,7 @@ export const useDrawResults = () => {
     functionName: 'getPrizeAmount',
     args: [BigInt(currentDrawId), BigInt(4)],
     query: {
-      enabled: !!currentDrawData && currentDrawData[5],
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]),
     },
   })
 
@@ -147,7 +144,17 @@ export const useDrawResults = () => {
     functionName: 'getPrizeAmount',
     args: [BigInt(currentDrawId), BigInt(3)],
     query: {
-      enabled: !!currentDrawData && currentDrawData[5],
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]),
+    },
+  })
+
+  const { data: prizeAmount2 } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'getPrizeAmount',
+    args: [BigInt(currentDrawId), BigInt(2)],
+    query: {
+      enabled: !!currentDrawData && Boolean(currentDrawData[7]),
     },
   })
 
@@ -156,7 +163,7 @@ export const useDrawResults = () => {
     const results: DrawResult[] = []
 
     // Process current draw if executed
-    if (currentDrawData && currentDrawData[5]) { // executed
+    if (currentDrawData && Boolean(currentDrawData[7])) { // executed
       const drawResult: DrawResult = {
         id: Number(currentDrawData[0]),
         date: new Date(Number(currentDrawData[2]) * 1000).toISOString().split('T')[0],
@@ -164,16 +171,16 @@ export const useDrawResults = () => {
         jackpotAmount: ethers.formatEther(currentDrawData[4]),
         totalPrizePool: ethers.formatEther(currentDrawData[3]),
         winners: {
-          jackpot: winnersCount6 ? Number(winnersCount6) : 0,
-          second: winnersCount5 ? Number(winnersCount5) : 0,
-          third: winnersCount4 ? Number(winnersCount4) : 0,
-          fourth: winnersCount3 ? Number(winnersCount3) : 0,
+          jackpot: winnersCount5 ? Number(winnersCount5) : 0,
+          second: winnersCount4 ? Number(winnersCount4) : 0,
+          third: winnersCount3 ? Number(winnersCount3) : 0,
+          fourth: winnersCount2 ? Number(winnersCount2) : 0,
         },
         prizeAmounts: {
-          jackpot: prizeAmount6 ? ethers.formatEther(prizeAmount6) : '0',
-          second: prizeAmount5 ? ethers.formatEther(prizeAmount5) : '0',
-          third: prizeAmount4 ? ethers.formatEther(prizeAmount4) : '0',
-          fourth: prizeAmount3 ? ethers.formatEther(prizeAmount3) : '0',
+          jackpot: prizeAmount5 ? ethers.formatEther(prizeAmount5) : '0',
+          second: prizeAmount4 ? ethers.formatEther(prizeAmount4) : '0',
+          third: prizeAmount3 ? ethers.formatEther(prizeAmount3) : '0',
+          fourth: prizeAmount2 ? ethers.formatEther(prizeAmount2) : '0',
         },
         totalTickets: totalTicketsSold,
         executed: true
@@ -182,7 +189,7 @@ export const useDrawResults = () => {
     }
 
     // Process previous draw if exists and executed
-    if (previousDrawData && previousDrawData[5] && currentDrawId > 1) {
+    if (previousDrawData && Boolean(previousDrawData[7]) && currentDrawId > 1) {
       const prevDrawResult: DrawResult = {
         id: Number(previousDrawData[0]),
         date: new Date(Number(previousDrawData[2]) * 1000).toISOString().split('T')[0],
@@ -211,14 +218,14 @@ export const useDrawResults = () => {
   }, [
     currentDrawData,
     previousDrawData,
-    winnersCount6,
     winnersCount5,
     winnersCount4,
     winnersCount3,
-    prizeAmount6,
+    winnersCount2,
     prizeAmount5,
     prizeAmount4,
     prizeAmount3,
+    prizeAmount2,
     totalTicketsSold,
     currentDrawId
   ])

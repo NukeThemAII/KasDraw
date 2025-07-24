@@ -78,30 +78,48 @@ const Play = () => {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent mb-4">
-          Play BlockDAG Lottery
+          Play KasDraw Lottery - Enhanced Edition
         </h1>
         <p className="text-lg text-slate-600 mb-2">
-          Select {LOTTERY_CONFIG.NUMBERS_PER_TICKET} Ghost numbers from {LOTTERY_CONFIG.MIN_NUMBER} to {LOTTERY_CONFIG.MAX_NUMBER}
+          Select {LOTTERY_CONFIG.NUMBERS_PER_TICKET} numbers from {LOTTERY_CONFIG.MIN_NUMBER} to {LOTTERY_CONFIG.MAX_NUMBER} - Better Odds, More Winners!
         </p>
         <p className="text-sm text-cyan-600 mb-6">
-          Powered by GhostDAG • Instant Confirmation • Parallel Processing
+          Easier to Win • More Prize Tiers • Percentage-Based Executor Rewards
         </p>
         
-        {/* Game Info */}
-        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-8 ghost-glow">
-          <div className="flex items-center justify-center space-x-2 mb-2">
+        {/* Enhanced Game Info */}
+        <div className="bg-gradient-to-r from-cyan-50 to-teal-50 border border-cyan-200 rounded-lg p-6 mb-8 ghost-glow">
+          <div className="flex items-center justify-center space-x-2 mb-4">
             <Info className="w-5 h-5 text-cyan-600" />
-            <span className="font-semibold text-cyan-800">BlockDAG Protocol Information</span>
+            <span className="font-semibold text-cyan-800">Enhanced Lottery Information</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-cyan-700">
-            <div>
-              <span className="font-medium">Ghost Ticket Price:</span> {LOTTERY_CONFIG.TICKET_PRICE} KAS
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-cyan-700">
+            <div className="text-center">
+              <span className="font-medium block">Ticket Price:</span>
+              <span className="text-lg font-bold text-cyan-800">{LOTTERY_CONFIG.TICKET_PRICE} KAS</span>
             </div>
-            <div>
-              <span className="font-medium">GhostDAG Draw Days:</span> {LOTTERY_CONFIG.DRAW_DAYS.join(', ')}
+            <div className="text-center">
+              <span className="font-medium block">Draw Days:</span>
+              <span className="text-lg font-bold text-cyan-800">{LOTTERY_CONFIG.DRAW_DAYS.join(' & ')}</span>
             </div>
-            <div>
-              <span className="font-medium">Parallel Draw Time:</span> {LOTTERY_CONFIG.DRAW_TIME}
+            <div className="text-center">
+              <span className="font-medium block">Draw Time:</span>
+              <span className="text-lg font-bold text-cyan-800">{LOTTERY_CONFIG.DRAW_TIME}</span>
+            </div>
+            <div className="text-center">
+              <span className="font-medium block">Prize Tiers:</span>
+              <span className="text-lg font-bold text-cyan-800">4 Levels</span>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-cyan-200">
+            <div className="text-center">
+              <span className="font-medium text-cyan-800">🎯 Better Winning Odds:</span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs">
+                <div><span className="font-medium">Jackpot:</span> 1 in 325K</div>
+                <div><span className="font-medium">2nd Prize:</span> 1 in 7.6K</div>
+                <div><span className="font-medium">3rd Prize:</span> 1 in 344</div>
+                <div><span className="font-medium">4th Prize:</span> 1 in 35</div>
+              </div>
             </div>
           </div>
         </div>

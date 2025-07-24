@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\matal\\Documents\\Trae\\KasDraw\\contracts\\KasDrawLottery.sol": {
-      "lastModificationDate": 1753294731077,
-      "contentHash": "629d57c79c944438bb0144dac8352978",
+      "lastModificationDate": 1753345734566,
+      "contentHash": "fe2c59ca88e2503b35b78cb8abd8da4c",
       "sourceName": "contracts/KasDrawLottery.sol",
       "solcConfig": {
         "version": "0.8.19",
@@ -12,6 +12,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "outputSelection": {
             "*": {
               "*": [
@@ -51,6 +52,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "outputSelection": {
             "*": {
               "*": [
@@ -88,6 +90,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "outputSelection": {
             "*": {
               "*": [
@@ -123,6 +126,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "outputSelection": {
             "*": {
               "*": [
@@ -160,6 +164,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "outputSelection": {
             "*": {
               "*": [

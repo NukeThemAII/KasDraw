@@ -59,13 +59,14 @@ export function useRolloverAmount() {
 }
 
 export function useLastFourDrawsWinners() {
-  const { data: lotteryState } = useReadContract({
+  // Get current draw ID from the contract
+  const { data: currentDrawIdData } = useReadContract({
     abi: LOTTERY_ABI,
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
-    functionName: 'getLotteryState',
+    functionName: 'currentDrawId',
   })
 
-  const currentDrawId = lotteryState ? Number((lotteryState as [bigint, bigint, bigint, bigint, boolean])[0]) : 1
+  const currentDrawId = currentDrawIdData ? Number(currentDrawIdData) : 1
   
   // Get winners for last 4 draws (excluding current draw)
   const lastDrawIds = Array.from({ length: 4 }, (_, i) => currentDrawId - 1 - i).filter(id => id > 0)

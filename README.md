@@ -1,17 +1,19 @@
 # KasDraw - Decentralized Lottery DApp
 
-A fully decentralized lottery application built on the Kasplex EVM testnet, featuring multi-tier prizes, rollover jackpots, transparent on-chain draws, and automated execution system.
+A fully decentralized lottery application built on the Kasplex EVM testnet, featuring an enhanced 5-number selection system, multi-tier prizes, rollover jackpots, transparent on-chain draws, and automated execution system.
 
 ## 🎯 Features
 
-- **Multi-Tier Prize System**: 4 prize tiers with 60%, 20%, 15%, and 5% distribution
+- **Enhanced 5-Number System**: Pick 5 numbers from 1-35 for better winning odds
+- **4-Tier Prize System**: Comprehensive prize structure (5/5, 4/5, 3/5, 2/5 matches)
 - **Rollover Jackpots**: Unclaimed jackpots roll over to the next draw
 - **Admin Fee Structure**: 1% of ticket sales for platform maintenance
 - **Secure Smart Contract**: Built with OpenZeppelin standards (HIGH security rating)
 - **Enhanced UI**: Kaspa.org-inspired design with vibrant jackpot display
 - **MetaMask Integration**: Seamless wallet connection and transactions
-- **Real-time Updates**: Live jackpot and draw information
+- **Real-time Updates**: Live jackpot and draw information from blockchain
 - **Updated Pricing**: 10 KAS per ticket for enhanced prize pools
+- **🆕 Live On-Chain Data**: 100% blockchain integration, no mock data
 - **🆕 Decentralized Draw Execution**: Anyone can trigger draws after 7-day intervals
 - **🆕 Executor Rewards**: 0.1 KAS reward for executing draws
 - **🆕 Automated System**: Comprehensive automation scripts and monitoring
@@ -20,10 +22,10 @@ A fully decentralized lottery application built on the Kasplex EVM testnet, feat
 ## 🎮 How to Play
 
 1. **Connect Wallet**: Connect your MetaMask wallet to the Kasplex testnet
-2. **Select Numbers**: Choose 6 numbers from 1-49 or use Quick Pick
+2. **Select Numbers**: Choose 5 numbers from 1-35 or use Quick Pick
 3. **Purchase Tickets**: Buy tickets for 10 KAS each
-4. **Wait for Draw**: Draws occur twice weekly (Wednesday & Saturday at 8 PM)
-5. **Claim Prizes**: Check results and claim any winnings
+4. **Wait for Draw**: Draws occur automatically every 7 days
+5. **Claim Prizes**: Check results and claim any winnings from 4 prize tiers
 
 ## 🏗️ Technical Stack
 
@@ -101,21 +103,21 @@ After deployment, verify the contract on the Kasplex block explorer for transpar
 
 ### Ticket Purchase
 - **Price**: 10 KAS per ticket
-- **Numbers**: Select 6 unique numbers from 1-49
+- **Numbers**: Select 5 unique numbers from 1-35
 - **Multiple Tickets**: Purchase multiple tickets in one transaction
 
 ### Prize Structure
-- **Jackpot (6 matches)**: 60% of prize pool
-- **Second Prize (5 matches)**: 20% of prize pool
-- **Third Prize (4 matches)**: 15% of prize pool
-- **Fourth Prize (3 matches)**: 4% of prize pool
+- **Tier 1 (5/5 matches)**: 60% of prize pool (Jackpot)
+- **Tier 2 (4/5 matches)**: 20% of prize pool
+- **Tier 3 (3/5 matches)**: 15% of prize pool
+- **Tier 4 (2/5 matches)**: 5% of prize pool
 - **Admin Fee**: 1% of ticket sales
 
 ### Draw Schedule
-- **Frequency**: Twice weekly
-- **Days**: Wednesday and Saturday
-- **Time**: 8:00 PM UTC
-- **Execution**: Manual draw execution by admin
+- **Frequency**: Every 7 days
+- **Execution**: Automated or public execution
+- **Incentive**: 0.1 KAS reward for executing draws
+- **Transparency**: All draws recorded on blockchain
 
 ## 🔧 Development
 
@@ -151,7 +153,7 @@ PRIVATE_KEY=your_private_key_here
 ADMIN_ADDRESS=0x2546BcD3c84621e976D8185a91A922aE77ECEc30
 
 # Frontend configuration
-VITE_CONTRACT_ADDRESS=deployed_contract_address
+VITE_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
 VITE_RPC_URL=https://rpc.kasplex.org
 VITE_CHAIN_ID=167012
 ```
@@ -172,8 +174,9 @@ KasDraw uses a sophisticated random number generation system that combines multi
 
 #### **Algorithm**: Fisher-Yates Shuffle
 - **Purpose**: Ensures uniform distribution of selected numbers
-- **Process**: Selects 6 unique numbers from 1-49 without replacement
+- **Process**: Selects 5 unique numbers from 1-35 without replacement
 - **Guarantee**: Each number has equal probability of selection
+- **Enhanced Odds**: Improved winning chances with smaller number pool
 
 #### **Entropy Sources**
 ```solidity

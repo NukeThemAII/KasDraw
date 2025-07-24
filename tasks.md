@@ -4,17 +4,18 @@
 
 ### Core Functionality
 - [x] Smart contract implementation with 10 KAS ticket price (updated from 0.1 KAS)
+- [x] Enhanced lottery system with 5-number selection (1-35, pick 5 numbers)
 - [x] Lottery ticket purchase system
-- [x] Number selection (1-49, pick 6 numbers)
 - [x] Quick pick functionality
 - [x] User ticket management and display
 - [x] Winning number generation and display
-- [x] Prize calculation and distribution
+- [x] Prize calculation and distribution with 4 prize tiers
 - [x] Results page with draw history and error handling
 - [x] Enhanced Results page with live jackpot display
 - [x] Fixed Results page white screen issue with fallback UI
 - [x] Simplified Results page to show current tickets and last draw winners
 - [x] Smart contract functions for winner data retrieval
+- [x] Updated contract deployment with enhanced features
 
 ### UI/UX Improvements
 - [x] Kaspa branding and color scheme (turquoise blue)
@@ -52,6 +53,8 @@
 - [x] RPC connection failures causing transaction timeouts (FIXED: Added retry logic and timeout configuration)
 - [x] Dynamic jackpot not displaying from smart contract (FIXED: Updated Home.tsx to use useLotteryContract)
 - [x] Results page white screen issue (FIXED: Added error handling and fallback UI)
+- [x] Smart contract deployment and integration (FIXED: New contract deployed with enhanced features)
+- [x] Transaction failures due to outdated contract (FIXED: Updated contract address and ABI)
 - [ ] Kasplex testnet RPC endpoint intermittent connectivity issues
 
 ### Known Bugs
@@ -67,7 +70,9 @@
 ## Upcoming Tasks 📋
 
 ### High Priority
-- [ ] Deploy updated smart contract with audit fixes
+- [x] Deploy updated smart contract with audit fixes (COMPLETED: New contract deployed)
+- [x] Update frontend to use new contract address and ABI (COMPLETED)
+- [x] Fix transaction failures and contract integration (COMPLETED)
 - [ ] Set up automated draw execution in production
 - [ ] Configure monitoring and alerting for automation
 - [ ] Test decentralized draw execution functionality
@@ -99,18 +104,22 @@
 
 ## Deployment
 - [x] GitHub repository: https://github.com/NukeThemAII/KasDraw.git
+- [x] Smart contract deployed to Kasplex testnet
+- [x] Frontend updated with new contract integration
 - [ ] Production deployment setup
 - [ ] CI/CD pipeline
 - [ ] Environment configuration
 
 ## Notes
 - Current ticket price: 10 KAS (updated from 0.1 KAS)
-- Lottery numbers: 1-49 (pick 6)
+- Enhanced lottery system: 1-35 (pick 5 numbers) with 4 prize tiers
 - Kaspa turquoise theme implemented
 - BlockDAG/GhostDAG terminology integrated
 - Smart contract deployed and functional
-- New contract address: 0xAcef979AB3D7b50657a8334a85407B5c6840F568
+- Latest contract address: 0x5FbDB2315678afecb367f032d93F642f64180aa3 (updated)
 - Enhanced Results page with live on-chain data and error handling
 - Results page simplified to show current tickets and last draw winners
 - Security audit completed - HIGH security rating
 - Winner tracking for last 4 draws implemented
+- Prize tiers: 5/5 (Jackpot), 4/5 (2nd), 3/5 (3rd), 2/5 (4th)
+- All UI components updated to use live on-chain data

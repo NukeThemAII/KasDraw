@@ -9,7 +9,8 @@ import {
   RefreshCw, 
   AlertTriangle,
   CheckCircle,
-  Loader2
+  Loader2,
+  RotateCcw
 } from 'lucide-react'
 import { ADMIN_ADDRESS } from '../config/lottery'
 import { useLotteryContract } from '../hooks/useLotteryContract'
@@ -24,8 +25,10 @@ const AdminDashboard = () => {
     refetchLotteryState, 
     executeDrawAuto, 
     withdrawAdminFees, 
+    emergencyRefundAll,
     isExecutingDraw, 
-    isWithdrawing 
+    isWithdrawing,
+    isRefunding
   } = useLotteryContract()
   const [loading, setLoading] = useState(false)
 
@@ -79,6 +82,28 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Withdrawal failed:', error)
       toast.error('Failed to withdraw fees')
+    }
+  }
+
+  const handleEmergencyRefund = async () => {
+    if (!isAdmin) {
+      toast.error('Only admin can execute emergency refund')
+      return
+    }
+
+    const confirmed = window.confirm(
+      'Are you sure you want to refund all player deposits? This action cannot be undone and will return all KAS to the original depositing addresses.'
+    )
+
+    if (!confirmed) return
+
+    try {
+      await emergencyRefundAll()
+      toast.success('Emergency refund executed successfully!')
+      await refetchLotteryState()
+    } catch (error) {
+      console.error('Emergency refund failed:', error)
+      toast.error('Failed to execute emergency refund')
     }
   }
 
@@ -177,10 +202,37 @@ const AdminDashboard = () => {
             {lotteryState?.adminBalance || '0'} KAS
           </div>
         </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+            <RotateCcw className="w-6 h-6 text-red-500" />
+            <span>Emergency Refund</span>
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Refund all player deposits back to their original addresses. Use only for testnet recovery or emergency situations.
+          </p>
+          <button
+            onClick={handleEmergencyRefund}
+            disabled={isRefunding}
+            className="w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-semibold hover:from-red-600 hover:to-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          >
+            {isRefunding ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Processing Refund...</span>
+              </>
+            ) : (
+              <>
+                <RotateCcw className="w-5 h-5" />
+                <span>Emergency Refund All</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Admin Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
             <Play className="w-6 h-6 text-green-500" />

@@ -32,7 +32,7 @@ async function main() {
         
         // Check current lottery state
         const [currentDrawId, totalTicketsSold, accumulatedJackpot, adminBalance, paused] = 
-            await lottery.getLotteryState();
+            await lottery.getLotteryStats();
         
         console.log(`\n📊 Current Lottery State:`);
         console.log(`   Draw ID: ${currentDrawId}`);

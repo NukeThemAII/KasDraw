@@ -12,7 +12,37 @@ export const useLotteryContract = () => {
   } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
-    functionName: 'getLotteryState',
+    functionName: 'getLotteryStats',
+  })
+
+  // Get current draw ID separately
+  const { 
+    data: currentDrawIdData, 
+    refetch: refetchCurrentDrawId 
+  } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'currentDrawId',
+  })
+
+  // Get admin balance
+  const { 
+    data: adminBalanceData, 
+    refetch: refetchAdminBalance 
+  } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'adminBalance',
+  })
+
+  // Get paused status
+  const { 
+    data: pausedData, 
+    refetch: refetchPaused 
+  } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'paused',
   })
 
   const { address: account } = useAccount()
@@ -65,6 +95,12 @@ export const useLotteryContract = () => {
     isPending: isWithdrawing,
   } = useWriteContract()
 
+  // Emergency refund all
+  const {
+    writeContract: emergencyRefund,
+    isPending: isRefunding,
+  } = useWriteContract()
+
   // Helper functions
   const buyTickets = async (ticketNumbers: number[][]) => {
     if (!account) {
@@ -93,6 +129,9 @@ export const useLotteryContract = () => {
       toast.success('Tickets purchased successfully!')
       // Refetch lottery state and player stats after successful purchase
       refetchLotteryState()
+      refetchCurrentDrawId()
+      refetchAdminBalance()
+      refetchPaused()
       refetchPlayerStats()
     } catch (error) {
       console.error('Error buying tickets:', error)
@@ -116,6 +155,9 @@ export const useLotteryContract = () => {
       toast.success('Draw executed successfully!')
       // Refetch lottery state and player stats after successful draw execution
       refetchLotteryState()
+      refetchCurrentDrawId()
+      refetchAdminBalance()
+      refetchPaused()
       refetchPlayerStats()
     } catch (error) {
       console.error('Error executing draw:', error)
@@ -139,6 +181,9 @@ export const useLotteryContract = () => {
       toast.success('Public draw executed successfully!')
       // Refetch lottery state and player stats after successful draw execution
       refetchLotteryState()
+      refetchCurrentDrawId()
+      refetchAdminBalance()
+      refetchPaused()
       refetchPlayerStats()
     } catch (error) {
       console.error('Error executing public draw:', error)
@@ -180,6 +225,9 @@ export const useLotteryContract = () => {
       toast.success('Prize claimed successfully!')
       // Refetch lottery state and player stats after successful claim
       refetchLotteryState()
+      refetchCurrentDrawId()
+      refetchAdminBalance()
+      refetchPaused()
       refetchPlayerStats()
     } catch (error) {
       console.error('Error claiming prize:', error)
@@ -203,25 +251,62 @@ export const useLotteryContract = () => {
       toast.success('Admin fees withdrawn successfully!')
       // Refetch lottery state after successful withdrawal
       refetchLotteryState()
+      refetchCurrentDrawId()
+      refetchAdminBalance()
+      refetchPaused()
     } catch (error) {
       console.error('Error withdrawing admin fees:', error)
       toast.error('Failed to withdraw admin fees')
     }
   }
 
+  const emergencyRefundAll = async () => {
+    if (!account) {
+      toast.error('Please connect your wallet')
+      return
+    }
+
+    try {
+      await emergencyRefund({
+        address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOTTERY_ABI,
+        functionName: 'emergencyRefundAll',
+      } as any)
+      
+      toast.success('Emergency refund executed successfully!')
+      // Refetch lottery state after successful refund
+      refetchLotteryState()
+      refetchCurrentDrawId()
+      refetchAdminBalance()
+      refetchPaused()
+      refetchPlayerStats()
+    } catch (error) {
+      console.error('Error executing emergency refund:', error)
+      toast.error('Failed to execute emergency refund')
+    }
+  }
+
   // Parse lottery state
   const parsedLotteryState = lotteryState ? {
-    currentDrawId: Number(lotteryState[0]),
-    totalTicketsSold: Number(lotteryState[1]),
-    accumulatedJackpot: ethers.formatEther(lotteryState[2]),
-    adminBalance: ethers.formatEther(lotteryState[3]),
-    paused: lotteryState[4],
+    // getLotteryStats returns: currentJackpot, ticketsSoldThisDraw, totalTickets, nextDraw, executorReward, canExecute
+    accumulatedJackpot: ethers.formatEther(lotteryState[0]),
+    ticketsSoldThisDraw: Number(lotteryState[1]),
+    totalTicketsSold: Number(lotteryState[2]),
+    nextDrawTime: Number(lotteryState[3]),
+    executorReward: ethers.formatEther(lotteryState[4]),
+    canExecute: Boolean(lotteryState[5]),
+    currentDrawId: currentDrawIdData ? Number(currentDrawIdData) : 1,
+    adminBalance: adminBalanceData ? ethers.formatEther(adminBalanceData) : '0',
+    paused: pausedData ? Boolean(pausedData) : false
   } : null
 
   return {
     lotteryState: parsedLotteryState,
     playerStats,
     refetchLotteryState,
+    refetchCurrentDrawId,
+    refetchAdminBalance,
+    refetchPaused,
     refetchPlayerStats,
     
     // Actions
@@ -231,6 +316,7 @@ export const useLotteryContract = () => {
     executeDrawWithNumbers,
     claimTicketPrize,
     withdrawAdminFees: withdrawAdminFeesAction,
+    emergencyRefundAll,
     
     // Public draw utilities
     canExecuteDrawPublic,
@@ -241,6 +327,7 @@ export const useLotteryContract = () => {
     isExecutingDraw: isExecuting,
     isClaiming,
     isWithdrawing,
+    isRefunding,
   }
 }
 

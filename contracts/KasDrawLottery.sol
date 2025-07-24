@@ -6,25 +6,28 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
 /**
- * @title KasDrawLottery
- * @dev Decentralized lottery contract for Kasplex EVM testnet
+ * @title KasDrawLottery - Enhanced Gamified Version
+ * @dev Decentralized lottery contract with improved winning odds and user engagement
  * @author KasDraw Team
  */
 contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
-    // Constants
+    // Enhanced Constants for Better User Engagement
     uint256 public constant TICKET_PRICE = 10 ether; // 10 KAS
-    uint256 public constant NUMBERS_PER_TICKET = 6;
-    uint256 public constant MAX_NUMBER = 49;
+    uint256 public constant NUMBERS_PER_TICKET = 5; // Reduced from 6 to 5 for easier wins
+    uint256 public constant MAX_NUMBER = 35; // Reduced from 49 to 35 for better odds
     uint256 public constant MIN_NUMBER = 1;
     uint256 public constant ADMIN_FEE_PERCENTAGE = 1; // 1%
-    uint256 public constant DRAW_INTERVAL = 7 days; // Draw every 7 days
-    uint256 public constant EXECUTOR_REWARD = 0.1 ether; // 0.1 KAS reward for executing draw
+    uint256 public constant DRAW_INTERVAL = 3.5 days; // Twice per week (Wednesday & Saturday)
+    uint256 public constant EXECUTOR_REWARD_PERCENTAGE = 10; // 0.1% of jackpot (10 basis points)
+    uint256 public constant MIN_EXECUTOR_REWARD = 0.1 ether; // Minimum 0.1 KAS
+    uint256 public constant MAX_EXECUTOR_REWARD = 10 ether; // Maximum 10 KAS
     
-    // Prize distribution percentages
-    uint256 public constant JACKPOT_PERCENTAGE = 60; // 60%
-    uint256 public constant SECOND_PRIZE_PERCENTAGE = 20; // 20%
-    uint256 public constant THIRD_PRIZE_PERCENTAGE = 15; // 15%
-    uint256 public constant FOURTH_PRIZE_PERCENTAGE = 5; // 5% (fixed from 4% to total 100%)
+    // Enhanced Prize Distribution for More Winners
+    uint256 public constant JACKPOT_PERCENTAGE = 50; // 50% (reduced to fund more tiers)
+    uint256 public constant SECOND_PRIZE_PERCENTAGE = 20; // 20% (5 matches)
+    uint256 public constant THIRD_PRIZE_PERCENTAGE = 15; // 15% (4 matches)
+    uint256 public constant FOURTH_PRIZE_PERCENTAGE = 10; // 10% (3 matches)
+    uint256 public constant FIFTH_PRIZE_PERCENTAGE = 5; // 5% (2 matches) - NEW TIER!
     
     // Structs
     struct Ticket {
@@ -32,6 +35,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         uint256[NUMBERS_PER_TICKET] numbers;
         uint256 drawId;
         bool claimed;
+        uint256 purchaseTime;
     }
     
     struct Draw {
@@ -40,6 +44,8 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         uint256 timestamp;
         uint256 totalPrizePool;
         uint256 jackpotAmount;
+        uint256 executorReward;
+        address executor;
         bool executed;
         mapping(uint256 => uint256) winnersCount; // matches => count
         mapping(uint256 => uint256) prizeAmounts; // matches => amount per winner
@@ -49,6 +55,12 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         uint256 totalTickets;
         uint256 totalWinnings;
         uint256[] ticketIds;
+        uint256 lastPlayTime;
+    }
+    
+    struct RefundInfo {
+        address player;
+        uint256 amount;
     }
     
     // State variables
@@ -57,11 +69,13 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     uint256 public accumulatedJackpot;
     uint256 public adminBalance;
     uint256 public lastDrawTime;
+    uint256 public nextDrawTime;
     
     mapping(uint256 => Draw) public draws;
     mapping(uint256 => Ticket) public tickets;
     mapping(address => PlayerStats) public playerStats;
     mapping(uint256 => uint256[]) public drawTickets; // drawId => ticketIds
+    mapping(address => uint256) public playerDeposits; // For refund tracking
     
     uint256 private ticketCounter;
     
@@ -70,14 +84,17 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         address indexed player,
         uint256 indexed ticketId,
         uint256 indexed drawId,
-        uint256[NUMBERS_PER_TICKET] numbers
+        uint256[NUMBERS_PER_TICKET] numbers,
+        uint256 timestamp
     );
     
     event DrawExecuted(
         uint256 indexed drawId,
         uint256[NUMBERS_PER_TICKET] winningNumbers,
         uint256 totalPrizePool,
-        uint256 jackpotAmount
+        uint256 jackpotAmount,
+        address indexed executor,
+        uint256 executorReward
     );
     
     event PrizeClaimed(
@@ -95,17 +112,20 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         uint256 reward
     );
     
-    event Paused(address account);
-    event Unpaused(address account);
+    event EmergencyRefund(
+        address indexed player,
+        uint256 amount
+    );
     
     constructor() {
         currentDrawId = 1;
         ticketCounter = 1;
         lastDrawTime = block.timestamp;
+        nextDrawTime = block.timestamp + DRAW_INTERVAL;
     }
     
     /**
-     * @dev Purchase lottery tickets
+     * @dev Purchase lottery tickets with enhanced tracking
      * @param ticketNumbers Array of ticket numbers (each ticket has NUMBERS_PER_TICKET numbers)
      */
     function purchaseTickets(
@@ -125,6 +145,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             Ticket storage ticket = tickets[ticketId];
             ticket.player = msg.sender;
             ticket.drawId = currentDrawId;
+            ticket.purchaseTime = block.timestamp;
             
             // Copy numbers
             for (uint256 j = 0; j < NUMBERS_PER_TICKET; j++) {
@@ -135,11 +156,15 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             drawTickets[currentDrawId].push(ticketId);
             playerStats[msg.sender].ticketIds.push(ticketId);
             playerStats[msg.sender].totalTickets++;
+            playerStats[msg.sender].lastPlayTime = block.timestamp;
             
-            emit TicketPurchased(msg.sender, ticketId, currentDrawId, ticketNumbers[i]);
+            emit TicketPurchased(msg.sender, ticketId, currentDrawId, ticketNumbers[i], block.timestamp);
         }
         
         totalTicketsSold += ticketNumbers.length;
+        
+        // Track deposits for refund functionality
+        playerDeposits[msg.sender] += msg.value;
         
         // Calculate admin fee and add to prize pool
         uint256 totalAmount = msg.value;
@@ -160,7 +185,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         // Generate random winning numbers
         uint256[NUMBERS_PER_TICKET] memory winningNumbers = _generateRandomNumbers();
         
-        _executeDraw(winningNumbers);
+        _executeDraw(winningNumbers, msg.sender);
     }
     
     /**
@@ -173,96 +198,99 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         require(!draws[currentDrawId].executed, "Draw already executed");
         _validateTicketNumbers(winningNumbers);
         
-        _executeDraw(winningNumbers);
+        _executeDraw(winningNumbers, msg.sender);
     }
     
     /**
-     * @dev Public function to execute draw after interval has passed
-     * Anyone can call this function and receive a reward for executing the draw
+     * @dev Enhanced public function to execute draw with percentage-based rewards
+     * Anyone can call this function and receive a percentage of the jackpot as reward
      */
     function executeDrawPublic() external nonReentrant whenNotPaused {
         require(!draws[currentDrawId].executed, "Draw already executed");
         require(drawTickets[currentDrawId].length > 0, "No tickets sold for this draw");
         require(
-            block.timestamp >= lastDrawTime + DRAW_INTERVAL,
-            "Draw interval not reached yet"
+            block.timestamp >= nextDrawTime,
+            "Draw time not reached yet"
         );
         
         // Generate random winning numbers
         uint256[NUMBERS_PER_TICKET] memory winningNumbers = _generateRandomNumbers();
         
         // Execute the draw
-        _executeDraw(winningNumbers);
-        
-        // Pay executor reward if contract has sufficient balance
-        uint256 rewardPaid = 0;
-        if (address(this).balance >= EXECUTOR_REWARD) {
-            (bool success, ) = payable(msg.sender).call{value: EXECUTOR_REWARD}("");
-            require(success, "Executor reward transfer failed");
-            rewardPaid = EXECUTOR_REWARD;
-        }
-        
-        emit DrawExecutedByPublic(msg.sender, currentDrawId - 1, rewardPaid);
+        _executeDraw(winningNumbers, msg.sender);
     }
     
     /**
-     * @dev Internal function to execute draw with given winning numbers
+     * @dev Internal function to execute draw with enhanced reward calculation
      */
-    function _executeDraw(uint256[NUMBERS_PER_TICKET] memory winningNumbers) internal {
+    function _executeDraw(uint256[NUMBERS_PER_TICKET] memory winningNumbers, address executor) internal {
         Draw storage draw = draws[currentDrawId];
         draw.id = currentDrawId;
         draw.timestamp = block.timestamp;
         draw.totalPrizePool = accumulatedJackpot;
         draw.executed = true;
+        draw.executor = executor;
         
         // Copy winning numbers
         for (uint256 i = 0; i < NUMBERS_PER_TICKET; i++) {
             draw.winningNumbers[i] = winningNumbers[i];
         }
         
-        // Count winners for each prize tier
+        // Calculate executor reward (percentage of jackpot)
+        uint256 executorReward = (accumulatedJackpot * EXECUTOR_REWARD_PERCENTAGE) / 10000;
+        if (executorReward < MIN_EXECUTOR_REWARD) {
+            executorReward = MIN_EXECUTOR_REWARD;
+        } else if (executorReward > MAX_EXECUTOR_REWARD) {
+            executorReward = MAX_EXECUTOR_REWARD;
+        }
+        
+        draw.executorReward = executorReward;
+        
+        // Count winners for each prize tier (2-5 matches)
         uint256[] memory currentDrawTickets = drawTickets[currentDrawId];
         
         for (uint256 i = 0; i < currentDrawTickets.length; i++) {
             uint256 ticketId = currentDrawTickets[i];
             uint256 matches = _countMatches(tickets[ticketId].numbers, winningNumbers);
             
-            if (matches >= 3) {
+            if (matches >= 2) { // Now includes 2 matches!
                 draw.winnersCount[matches]++;
             }
         }
         
-        // Calculate prize amounts with proper fund allocation
-        uint256 totalPrizePool = draw.totalPrizePool;
+        // Calculate prize amounts with enhanced distribution
+        uint256 totalPrizePool = draw.totalPrizePool - executorReward;
         uint256 remainingPrizePool = totalPrizePool;
         
-        if (draw.winnersCount[6] > 0) {
-            // Jackpot won
+        // Jackpot (5 matches)
+        if (draw.winnersCount[5] > 0) {
             uint256 jackpotTotal = (totalPrizePool * JACKPOT_PERCENTAGE) / 100;
-            draw.prizeAmounts[6] = jackpotTotal / draw.winnersCount[6];
+            draw.prizeAmounts[5] = jackpotTotal / draw.winnersCount[5];
             draw.jackpotAmount = jackpotTotal;
             remainingPrizePool -= jackpotTotal;
             accumulatedJackpot = 0; // Reset jackpot
         } else {
-            // Jackpot rolls over
             draw.jackpotAmount = 0;
         }
         
-        if (draw.winnersCount[5] > 0) {
+        // Second Prize (4 matches)
+        if (draw.winnersCount[4] > 0) {
             uint256 secondPrizeTotal = (totalPrizePool * SECOND_PRIZE_PERCENTAGE) / 100;
-            draw.prizeAmounts[5] = secondPrizeTotal / draw.winnersCount[5];
+            draw.prizeAmounts[4] = secondPrizeTotal / draw.winnersCount[4];
             remainingPrizePool -= secondPrizeTotal;
         }
         
-        if (draw.winnersCount[4] > 0) {
+        // Third Prize (3 matches)
+        if (draw.winnersCount[3] > 0) {
             uint256 thirdPrizeTotal = (totalPrizePool * THIRD_PRIZE_PERCENTAGE) / 100;
-            draw.prizeAmounts[4] = thirdPrizeTotal / draw.winnersCount[4];
+            draw.prizeAmounts[3] = thirdPrizeTotal / draw.winnersCount[3];
             remainingPrizePool -= thirdPrizeTotal;
         }
         
-        if (draw.winnersCount[3] > 0) {
+        // Fourth Prize (2 matches) - NEW!
+        if (draw.winnersCount[2] > 0) {
             uint256 fourthPrizeTotal = (totalPrizePool * FOURTH_PRIZE_PERCENTAGE) / 100;
-            draw.prizeAmounts[3] = fourthPrizeTotal / draw.winnersCount[3];
+            draw.prizeAmounts[2] = fourthPrizeTotal / draw.winnersCount[2];
             remainingPrizePool -= fourthPrizeTotal;
         }
         
@@ -271,17 +299,26 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             accumulatedJackpot += remainingPrizePool;
         }
         
-        emit DrawExecuted(currentDrawId, winningNumbers, totalPrizePool, draw.jackpotAmount);
+        // Pay executor reward
+        if (executorReward > 0 && address(this).balance >= executorReward) {
+            (bool success, ) = payable(executor).call{value: executorReward}("");
+            if (success) {
+                emit DrawExecutedByPublic(executor, currentDrawId, executorReward);
+            }
+        }
         
-        // Update last draw time
+        emit DrawExecuted(currentDrawId, winningNumbers, totalPrizePool, draw.jackpotAmount, executor, executorReward);
+        
+        // Update draw times
         lastDrawTime = block.timestamp;
+        nextDrawTime = block.timestamp + DRAW_INTERVAL;
         
         // Start next draw
         currentDrawId++;
     }
     
     /**
-     * @dev Claim prize for a winning ticket
+     * @dev Claim prize for a winning ticket with enhanced match detection
      * @param ticketId The ID of the winning ticket
      */
     function claimPrize(uint256 ticketId) external nonReentrant {
@@ -293,7 +330,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         Draw storage draw = draws[ticket.drawId];
         uint256 matches = _countMatches(ticket.numbers, draw.winningNumbers);
         
-        require(matches >= 3, "No prize to claim");
+        require(matches >= 2, "No prize to claim"); // Now includes 2 matches!
         
         uint256 prizeAmount = draw.prizeAmounts[matches];
         require(prizeAmount > 0, "No prize amount set");
@@ -305,6 +342,54 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         require(success, "Prize transfer failed");
         
         emit PrizeClaimed(msg.sender, ticketId, matches, prizeAmount);
+    }
+    
+    /**
+     * @dev Emergency refund function - refunds all player deposits
+     * Only owner can call this in emergency situations
+     */
+    function emergencyRefundAll() external onlyOwner {
+        require(address(this).balance > 0, "No funds to refund");
+        
+        // Get all unique players who have deposits
+        address[] memory players = new address[](ticketCounter);
+        uint256 playerCount = 0;
+        
+        // Collect unique players
+        for (uint256 i = 1; i < ticketCounter; i++) {
+            address player = tickets[i].player;
+            if (playerDeposits[player] > 0) {
+                bool exists = false;
+                for (uint256 j = 0; j < playerCount; j++) {
+                    if (players[j] == player) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    players[playerCount] = player;
+                    playerCount++;
+                }
+            }
+        }
+        
+        // Refund each player
+        for (uint256 i = 0; i < playerCount; i++) {
+            address player = players[i];
+            uint256 refundAmount = playerDeposits[player];
+            
+            if (refundAmount > 0 && address(this).balance >= refundAmount) {
+                playerDeposits[player] = 0;
+                (bool success, ) = payable(player).call{value: refundAmount}("");
+                if (success) {
+                    emit EmergencyRefund(player, refundAmount);
+                }
+            }
+        }
+        
+        // Reset contract state
+        accumulatedJackpot = 0;
+        adminBalance = 0;
     }
     
     /**
@@ -327,7 +412,6 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
      */
     function pause() external onlyOwner {
         _pause();
-        emit Paused(msg.sender);
     }
     
     /**
@@ -335,10 +419,63 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
      */
     function unpause() external onlyOwner {
         _unpause();
-        emit Unpaused(msg.sender);
     }
     
-    // View functions
+    // Enhanced View functions
+    
+    /**
+     * @dev Check if draw can be executed publicly with time information
+     * @return canExecute Whether the draw can be executed
+     * @return timeRemaining Time remaining until draw can be executed (0 if can execute)
+     * @return nextDraw Next scheduled draw time
+     */
+    function canExecuteDrawPublic() external view returns (bool canExecute, uint256 timeRemaining, uint256 nextDraw) {
+        if (draws[currentDrawId].executed || drawTickets[currentDrawId].length == 0) {
+            return (false, 0, nextDrawTime);
+        }
+        
+        if (block.timestamp >= nextDrawTime) {
+            return (true, 0, nextDrawTime);
+        } else {
+            return (false, nextDrawTime - block.timestamp, nextDrawTime);
+        }
+    }
+    
+    /**
+     * @dev Get current executor reward amount
+     * @return reward Current reward amount for executing draw
+     */
+    function getCurrentExecutorReward() external view returns (uint256 reward) {
+        uint256 calculatedReward = (accumulatedJackpot * EXECUTOR_REWARD_PERCENTAGE) / 10000;
+        if (calculatedReward < MIN_EXECUTOR_REWARD) {
+            return MIN_EXECUTOR_REWARD;
+        } else if (calculatedReward > MAX_EXECUTOR_REWARD) {
+            return MAX_EXECUTOR_REWARD;
+        }
+        return calculatedReward;
+    }
+    
+    /**
+     * @dev Get enhanced lottery statistics
+     */
+    function getLotteryStats() external view returns (
+        uint256 currentJackpot,
+        uint256 ticketsSoldThisDraw,
+        uint256 totalTickets,
+        uint256 nextDraw,
+        uint256 executorReward,
+        bool canExecute
+    ) {
+        (bool canExec, , ) = this.canExecuteDrawPublic();
+        return (
+            accumulatedJackpot,
+            drawTickets[currentDrawId].length,
+            totalTicketsSold,
+            nextDrawTime,
+            this.getCurrentExecutorReward(),
+            canExec
+        );
+    }
     
     /**
      * @dev Get ticket details
@@ -347,14 +484,15 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         address player,
         uint256[NUMBERS_PER_TICKET] memory numbers,
         uint256 drawId,
-        bool claimed
+        bool claimed,
+        uint256 purchaseTime
     ) {
         Ticket storage ticket = tickets[ticketId];
-        return (ticket.player, ticket.numbers, ticket.drawId, ticket.claimed);
+        return (ticket.player, ticket.numbers, ticket.drawId, ticket.claimed, ticket.purchaseTime);
     }
     
     /**
-     * @dev Get draw details
+     * @dev Get enhanced draw details
      */
     function getDraw(uint256 drawId) external view returns (
         uint256 id,
@@ -362,6 +500,8 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         uint256 timestamp,
         uint256 totalPrizePool,
         uint256 jackpotAmount,
+        uint256 executorReward,
+        address executor,
         bool executed
     ) {
         Draw storage draw = draws[drawId];
@@ -371,6 +511,8 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             draw.timestamp,
             draw.totalPrizePool,
             draw.jackpotAmount,
+            draw.executorReward,
+            draw.executor,
             draw.executed
         );
     }
@@ -390,73 +532,27 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     }
     
     /**
-     * @dev Get player statistics
+     * @dev Get enhanced player statistics
      */
     function getPlayerStats(address player) external view returns (
         uint256 totalTickets,
         uint256 totalWinnings,
-        uint256[] memory ticketIds
+        uint256[] memory ticketIds,
+        uint256 totalDeposits,
+        uint256 lastPlayTime
     ) {
         PlayerStats storage stats = playerStats[player];
-        return (stats.totalTickets, stats.totalWinnings, stats.ticketIds);
-    }
-    
-    /**
-     * @dev Get tickets for a specific draw
-     */
-    function getDrawTickets(uint256 drawId) external view returns (uint256[] memory) {
-        return drawTickets[drawId];
-    }
-    
-    /**
-     * @dev Get current lottery state
-     */
-    function getLotteryState() external view returns (
-        uint256 _currentDrawId,
-        uint256 _totalTicketsSold,
-        uint256 _accumulatedJackpot,
-        uint256 _adminBalance,
-        bool _paused
-    ) {
         return (
-            currentDrawId,
-            totalTicketsSold,
-            accumulatedJackpot,
-            adminBalance,
-            paused()
+            stats.totalTickets,
+            stats.totalWinnings,
+            stats.ticketIds,
+            playerDeposits[player],
+            stats.lastPlayTime
         );
     }
     
     /**
-     * @dev Check if draw can be executed publicly
-     * @return canExecute Whether the draw can be executed
-     * @return timeRemaining Time remaining until draw can be executed (0 if can execute)
-     */
-    function canExecuteDrawPublic() external view returns (bool canExecute, uint256 timeRemaining) {
-        if (draws[currentDrawId].executed || drawTickets[currentDrawId].length == 0) {
-            return (false, 0);
-        }
-        
-        uint256 nextDrawTime = lastDrawTime + DRAW_INTERVAL;
-        if (block.timestamp >= nextDrawTime) {
-            return (true, 0);
-        } else {
-            return (false, nextDrawTime - block.timestamp);
-        }
-    }
-    
-    /**
-     * @dev Get next draw execution time
-     * @return nextDrawTime Timestamp when next draw can be executed
-     */
-    function getNextDrawTime() external view returns (uint256 nextDrawTime) {
-        return lastDrawTime + DRAW_INTERVAL;
-    }
-
-    /**
-     * @dev Get winner addresses for a specific draw (gas optimized)
-     * @param drawId The draw ID to get winners for
-     * @return winners Array of winner addresses with their match counts and prize amounts
+     * @dev Get winner addresses for a specific draw (enhanced for new prize tiers)
      */
     function getDrawWinners(uint256 drawId) external view returns (
         address[] memory winners,
@@ -476,12 +572,12 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         
         uint256 winnerCount = 0;
         
-        // Single pass: count and populate winner data
+        // Single pass: count and populate winner data (now includes 2 matches)
         for (uint256 i = 0; i < ticketIds.length; i++) {
             uint256 ticketId = ticketIds[i];
             uint256 matches = _countMatches(tickets[ticketId].numbers, draws[drawId].winningNumbers);
             
-            if (matches >= 3) {
+            if (matches >= 2) { // Enhanced to include 2 matches
                 tempWinners[winnerCount] = tickets[ticketId].player;
                 tempMatchCounts[winnerCount] = matches;
                 tempPrizeAmounts[winnerCount] = draws[drawId].prizeAmounts[matches];
@@ -506,7 +602,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         
         return (winners, matchCounts, prizeAmounts, claimed);
     }
-
+    
     /**
      * @dev Get rollover amount for next draw
      * @return rolloverAmount The amount that will be added to next draw's jackpot
@@ -518,7 +614,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     // Internal functions
     
     /**
-     * @dev Validate ticket numbers
+     * @dev Validate ticket numbers (updated for new range)
      */
     function _validateTicketNumbers(uint256[NUMBERS_PER_TICKET] memory numbers) internal pure {
         for (uint256 i = 0; i < NUMBERS_PER_TICKET; i++) {
@@ -557,11 +653,10 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     
     /**
      * @dev Generate random winning numbers using enhanced randomness
-     * Uses multiple entropy sources for better randomness distribution
-     * Implements Fisher-Yates shuffle algorithm for uniform distribution
+     * Updated for new number range (1-35) and 5 numbers
      */
     function _generateRandomNumbers() internal view returns (uint256[NUMBERS_PER_TICKET] memory) {
-        // Create array of all possible numbers (1-49)
+        // Create array of all possible numbers (1-35)
         uint256[] memory availableNumbers = new uint256[](MAX_NUMBER);
         for (uint256 i = 0; i < MAX_NUMBER; i++) {
             availableNumbers[i] = i + MIN_NUMBER;
@@ -583,7 +678,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             gasleft()
         )));
         
-        // Use Fisher-Yates shuffle to select 6 unique numbers
+        // Use Fisher-Yates shuffle to select 5 unique numbers
         for (uint256 i = 0; i < NUMBERS_PER_TICKET; i++) {
             // Generate additional entropy for each selection
             uint256 additionalEntropy = uint256(keccak256(abi.encodePacked(
