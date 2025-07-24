@@ -192,6 +192,48 @@ VITE_CHAIN_ID=167012
 # Previous addresses: 0x0165878A594ca255338adfa4d48449f69242Eb8F, 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
+## 🌿 Development Workflow
+
+### Branch Strategy
+
+We use a two-branch development strategy to ensure code stability:
+
+- **`main` branch**: Production-ready, stable code only
+- **`dev` branch**: Active development and testing
+
+### Development Process
+
+1. **Development Work**: All new features and changes are made on the `dev` branch
+2. **Testing**: Thoroughly test changes on `dev` branch
+3. **Merge to Main**: Only tested, working code is merged from `dev` to `main`
+4. **Rollback Safety**: If issues arise, we can reset `dev` from `main` and start over
+
+### Branch Commands
+
+```bash
+# Switch to dev branch for development
+git checkout dev
+
+# Create feature branch from dev (optional)
+git checkout -b feature/new-feature dev
+
+# Push changes to dev branch
+git push origin dev
+
+# Switch back to main (stable)
+git checkout main
+
+# Reset dev branch from main if needed
+git checkout dev
+git reset --hard main
+git push --force-with-lease origin dev
+```
+
+### Current Branch Status
+- **Active Development**: `dev` branch
+- **Production**: `main` branch
+- **Contract Address**: Updated in both branches
+
 ## 🔐 Security Features
 
 - **ReentrancyGuard**: Prevents reentrancy attacks
