@@ -30,6 +30,16 @@ export const useLotteryContract = () => {
       enabled: !!account,
     },
   })
+
+  // Check if public draw can be executed
+  const { 
+    data: canExecuteDrawPublic, 
+    refetch: refetchCanExecuteDrawPublic 
+  } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'canExecuteDrawPublic',
+  })
   
   // Purchase tickets
   const {
@@ -110,6 +120,29 @@ export const useLotteryContract = () => {
     } catch (error) {
       console.error('Error executing draw:', error)
       toast.error('Failed to execute draw')
+    }
+  }
+
+  const executeDrawPublic = async () => {
+    if (!account) {
+      toast.error('Please connect your wallet')
+      return
+    }
+
+    try {
+      await executeDraw({
+        address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+        abi: LOTTERY_ABI,
+        functionName: 'executeDrawPublic',
+      } as any)
+      
+      toast.success('Public draw executed successfully!')
+      // Refetch lottery state and player stats after successful draw execution
+      refetchLotteryState()
+      refetchPlayerStats()
+    } catch (error) {
+      console.error('Error executing public draw:', error)
+      toast.error('Failed to execute public draw')
     }
   }
 
@@ -194,9 +227,14 @@ export const useLotteryContract = () => {
     // Actions
     buyTickets,
     executeDrawAuto,
+    executeDrawPublic,
     executeDrawWithNumbers,
     claimTicketPrize,
     withdrawAdminFees: withdrawAdminFeesAction,
+    
+    // Public draw utilities
+    canExecuteDrawPublic,
+    refetchCanExecuteDrawPublic,
     
     // Loading states
     isPurchasing,

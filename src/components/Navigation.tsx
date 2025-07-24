@@ -12,6 +12,7 @@ const Navigation = () => {
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/play', label: 'Play', icon: Ticket },
+    { path: '/draw', label: 'Draw', icon: Trophy },
     { path: '/results', label: 'Results', icon: Trophy },
     { path: '/my-tickets', label: 'My Tickets', icon: User },
   ]
@@ -74,10 +75,11 @@ const Navigation = () => {
                     isActive
                       ? 'bg-cyan-100 text-cyan-700'
                       : 'text-gray-600 hover:text-cyan-600 hover:bg-cyan-50'
-                  }`}
+                  } ${path === '/draw' ? 'relative' : ''}`}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="text-sm">{label}</span>
+                  {path === '/draw' && <span className="ml-1">⚡</span>}
                 </Link>
               )
             })}

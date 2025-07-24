@@ -17,6 +17,8 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     uint256 public constant MAX_NUMBER = 49;
     uint256 public constant MIN_NUMBER = 1;
     uint256 public constant ADMIN_FEE_PERCENTAGE = 1; // 1%
+    uint256 public constant DRAW_INTERVAL = 7 days; // Draw every 7 days
+    uint256 public constant EXECUTOR_REWARD = 0.1 ether; // 0.1 KAS reward for executing draw
     
     // Prize distribution percentages
     uint256 public constant JACKPOT_PERCENTAGE = 60; // 60%
@@ -54,6 +56,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     uint256 public totalTicketsSold;
     uint256 public accumulatedJackpot;
     uint256 public adminBalance;
+    uint256 public lastDrawTime;
     
     mapping(uint256 => Draw) public draws;
     mapping(uint256 => Ticket) public tickets;
@@ -86,9 +89,19 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     
     event AdminFeesWithdrawn(address indexed admin, uint256 amount);
     
+    event DrawExecutedByPublic(
+        address indexed executor,
+        uint256 indexed drawId,
+        uint256 reward
+    );
+    
+    event Paused(address account);
+    event Unpaused(address account);
+    
     constructor() {
         currentDrawId = 1;
         ticketCounter = 1;
+        lastDrawTime = block.timestamp;
     }
     
     /**
@@ -164,6 +177,35 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     }
     
     /**
+     * @dev Public function to execute draw after interval has passed
+     * Anyone can call this function and receive a reward for executing the draw
+     */
+    function executeDrawPublic() external nonReentrant whenNotPaused {
+        require(!draws[currentDrawId].executed, "Draw already executed");
+        require(drawTickets[currentDrawId].length > 0, "No tickets sold for this draw");
+        require(
+            block.timestamp >= lastDrawTime + DRAW_INTERVAL,
+            "Draw interval not reached yet"
+        );
+        
+        // Generate random winning numbers
+        uint256[NUMBERS_PER_TICKET] memory winningNumbers = _generateRandomNumbers();
+        
+        // Execute the draw
+        _executeDraw(winningNumbers);
+        
+        // Pay executor reward if contract has sufficient balance
+        uint256 rewardPaid = 0;
+        if (address(this).balance >= EXECUTOR_REWARD) {
+            (bool success, ) = payable(msg.sender).call{value: EXECUTOR_REWARD}("");
+            require(success, "Executor reward transfer failed");
+            rewardPaid = EXECUTOR_REWARD;
+        }
+        
+        emit DrawExecutedByPublic(msg.sender, currentDrawId - 1, rewardPaid);
+    }
+    
+    /**
      * @dev Internal function to execute draw with given winning numbers
      */
     function _executeDraw(uint256[NUMBERS_PER_TICKET] memory winningNumbers) internal {
@@ -190,13 +232,16 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             }
         }
         
-        // Calculate prize amounts
+        // Calculate prize amounts with proper fund allocation
         uint256 totalPrizePool = draw.totalPrizePool;
+        uint256 remainingPrizePool = totalPrizePool;
         
         if (draw.winnersCount[6] > 0) {
             // Jackpot won
-            draw.prizeAmounts[6] = (totalPrizePool * JACKPOT_PERCENTAGE / 100) / draw.winnersCount[6];
-            draw.jackpotAmount = draw.prizeAmounts[6] * draw.winnersCount[6];
+            uint256 jackpotTotal = (totalPrizePool * JACKPOT_PERCENTAGE) / 100;
+            draw.prizeAmounts[6] = jackpotTotal / draw.winnersCount[6];
+            draw.jackpotAmount = jackpotTotal;
+            remainingPrizePool -= jackpotTotal;
             accumulatedJackpot = 0; // Reset jackpot
         } else {
             // Jackpot rolls over
@@ -204,18 +249,32 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         }
         
         if (draw.winnersCount[5] > 0) {
-            draw.prizeAmounts[5] = (totalPrizePool * SECOND_PRIZE_PERCENTAGE / 100) / draw.winnersCount[5];
+            uint256 secondPrizeTotal = (totalPrizePool * SECOND_PRIZE_PERCENTAGE) / 100;
+            draw.prizeAmounts[5] = secondPrizeTotal / draw.winnersCount[5];
+            remainingPrizePool -= secondPrizeTotal;
         }
         
         if (draw.winnersCount[4] > 0) {
-            draw.prizeAmounts[4] = (totalPrizePool * THIRD_PRIZE_PERCENTAGE / 100) / draw.winnersCount[4];
+            uint256 thirdPrizeTotal = (totalPrizePool * THIRD_PRIZE_PERCENTAGE) / 100;
+            draw.prizeAmounts[4] = thirdPrizeTotal / draw.winnersCount[4];
+            remainingPrizePool -= thirdPrizeTotal;
         }
         
         if (draw.winnersCount[3] > 0) {
-            draw.prizeAmounts[3] = (totalPrizePool * FOURTH_PRIZE_PERCENTAGE / 100) / draw.winnersCount[3];
+            uint256 fourthPrizeTotal = (totalPrizePool * FOURTH_PRIZE_PERCENTAGE) / 100;
+            draw.prizeAmounts[3] = fourthPrizeTotal / draw.winnersCount[3];
+            remainingPrizePool -= fourthPrizeTotal;
+        }
+        
+        // Any remaining funds roll over to next draw
+        if (remainingPrizePool > 0) {
+            accumulatedJackpot += remainingPrizePool;
         }
         
         emit DrawExecuted(currentDrawId, winningNumbers, totalPrizePool, draw.jackpotAmount);
+        
+        // Update last draw time
+        lastDrawTime = block.timestamp;
         
         // Start next draw
         currentDrawId++;
@@ -268,6 +327,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
      */
     function pause() external onlyOwner {
         _pause();
+        emit Paused(msg.sender);
     }
     
     /**
@@ -275,6 +335,7 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
      */
     function unpause() external onlyOwner {
         _unpause();
+        emit Unpaused(msg.sender);
     }
     
     // View functions
@@ -365,9 +426,35 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
             paused()
         );
     }
+    
+    /**
+     * @dev Check if draw can be executed publicly
+     * @return canExecute Whether the draw can be executed
+     * @return timeRemaining Time remaining until draw can be executed (0 if can execute)
+     */
+    function canExecuteDrawPublic() external view returns (bool canExecute, uint256 timeRemaining) {
+        if (draws[currentDrawId].executed || drawTickets[currentDrawId].length == 0) {
+            return (false, 0);
+        }
+        
+        uint256 nextDrawTime = lastDrawTime + DRAW_INTERVAL;
+        if (block.timestamp >= nextDrawTime) {
+            return (true, 0);
+        } else {
+            return (false, nextDrawTime - block.timestamp);
+        }
+    }
+    
+    /**
+     * @dev Get next draw execution time
+     * @return nextDrawTime Timestamp when next draw can be executed
+     */
+    function getNextDrawTime() external view returns (uint256 nextDrawTime) {
+        return lastDrawTime + DRAW_INTERVAL;
+    }
 
     /**
-     * @dev Get winner addresses for a specific draw
+     * @dev Get winner addresses for a specific draw (gas optimized)
      * @param drawId The draw ID to get winners for
      * @return winners Array of winner addresses with their match counts and prize amounts
      */
@@ -380,36 +467,41 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         require(draws[drawId].executed, "Draw not executed yet");
         
         uint256[] memory ticketIds = drawTickets[drawId];
+        
+        // Use temporary arrays to store winner data
+        address[] memory tempWinners = new address[](ticketIds.length);
+        uint256[] memory tempMatchCounts = new uint256[](ticketIds.length);
+        uint256[] memory tempPrizeAmounts = new uint256[](ticketIds.length);
+        bool[] memory tempClaimed = new bool[](ticketIds.length);
+        
         uint256 winnerCount = 0;
         
-        // First pass: count winners
-        for (uint256 i = 0; i < ticketIds.length; i++) {
-            uint256 ticketId = ticketIds[i];
-            uint256 matches = _countMatches(tickets[ticketId].numbers, draws[drawId].winningNumbers);
-            if (matches >= 3) {
-                winnerCount++;
-            }
-        }
-        
-        // Initialize arrays
-        winners = new address[](winnerCount);
-        matchCounts = new uint256[](winnerCount);
-        prizeAmounts = new uint256[](winnerCount);
-        claimed = new bool[](winnerCount);
-        
-        // Second pass: populate winner data
-        uint256 index = 0;
+        // Single pass: count and populate winner data
         for (uint256 i = 0; i < ticketIds.length; i++) {
             uint256 ticketId = ticketIds[i];
             uint256 matches = _countMatches(tickets[ticketId].numbers, draws[drawId].winningNumbers);
             
             if (matches >= 3) {
-                winners[index] = tickets[ticketId].player;
-                matchCounts[index] = matches;
-                prizeAmounts[index] = draws[drawId].prizeAmounts[matches];
-                claimed[index] = tickets[ticketId].claimed;
-                index++;
+                tempWinners[winnerCount] = tickets[ticketId].player;
+                tempMatchCounts[winnerCount] = matches;
+                tempPrizeAmounts[winnerCount] = draws[drawId].prizeAmounts[matches];
+                tempClaimed[winnerCount] = tickets[ticketId].claimed;
+                winnerCount++;
             }
+        }
+        
+        // Create final arrays with exact size
+        winners = new address[](winnerCount);
+        matchCounts = new uint256[](winnerCount);
+        prizeAmounts = new uint256[](winnerCount);
+        claimed = new bool[](winnerCount);
+        
+        // Copy data to final arrays
+        for (uint256 i = 0; i < winnerCount; i++) {
+            winners[i] = tempWinners[i];
+            matchCounts[i] = tempMatchCounts[i];
+            prizeAmounts[i] = tempPrizeAmounts[i];
+            claimed[i] = tempClaimed[i];
         }
         
         return (winners, matchCounts, prizeAmounts, claimed);

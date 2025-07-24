@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import Home from './pages/Home'
 import Play from './pages/Play'
+import Draw from './pages/Draw'
 import Results from './pages/Results'
 import MyTickets from './pages/MyTickets'
 import AdminDashboard from './pages/AdminDashboard'
@@ -16,6 +17,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/play" element={<Play />} />
+            <Route path="/draw" element={<Draw />} />
             <Route path="/results" element={<Results />} />
             <Route path="/my-tickets" element={<MyTickets />} />
             <Route path="/admin" element={<AdminDashboard />} />

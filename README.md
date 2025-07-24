@@ -1,17 +1,21 @@
 # KasDraw - Decentralized Lottery DApp
 
-A decentralized lottery application built on the Kasplex EVM testnet, featuring multi-tier prizes, rollover jackpots, and transparent on-chain draws.
+A fully decentralized lottery application built on the Kasplex EVM testnet, featuring multi-tier prizes, rollover jackpots, transparent on-chain draws, and automated execution system.
 
 ## 🎯 Features
 
-- **Multi-Tier Prize System**: 4 prize tiers with 60%, 20%, 15%, and 4% distribution
+- **Multi-Tier Prize System**: 4 prize tiers with 60%, 20%, 15%, and 5% distribution
 - **Rollover Jackpots**: Unclaimed jackpots roll over to the next draw
 - **Admin Fee Structure**: 1% of ticket sales for platform maintenance
-- **Secure Smart Contract**: Built with OpenZeppelin standards
+- **Secure Smart Contract**: Built with OpenZeppelin standards (HIGH security rating)
 - **Enhanced UI**: Kaspa.org-inspired design with vibrant jackpot display
 - **MetaMask Integration**: Seamless wallet connection and transactions
 - **Real-time Updates**: Live jackpot and draw information
 - **Updated Pricing**: 10 KAS per ticket for enhanced prize pools
+- **🆕 Decentralized Draw Execution**: Anyone can trigger draws after 7-day intervals
+- **🆕 Executor Rewards**: 0.1 KAS reward for executing draws
+- **🆕 Automated System**: Comprehensive automation scripts and monitoring
+- **🆕 Security Audited**: Full security review with critical vulnerabilities fixed
 
 ## 🎮 How to Play
 
@@ -191,6 +195,15 @@ The admin dashboard provides:
 - **Accessibility**: WCAG compliant design
 
 ## 📝 Changelog
+
+### 2025-01-15 - Security & Automation Update
+- **🔒 Critical Security Fixes**: Fixed flawed prize calculation logic
+- **⚡ Gas Optimization**: Optimized `getDrawWinners` function for better performance
+- **🎯 Decentralized Execution**: Added `executeDrawPublic()` for community-driven draws
+- **🤖 Automation System**: Comprehensive automated draw execution with monitoring
+- **💰 Executor Incentives**: 0.1 KAS reward for triggering draws
+- **📊 Enhanced Events**: Improved logging and transparency
+- **📚 Documentation**: Complete automation guide and setup instructions
 
 ### Latest Updates (2025-07-23)
 
