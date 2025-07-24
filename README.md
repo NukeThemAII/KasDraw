@@ -204,6 +204,19 @@ VITE_CHAIN_ID=167012
 - **🆕 Frontend Security**: Improved UI state management prevents premature draw execution
 - **🆕 Smart Contract Protection**: Multiple layers of validation prevent unauthorized draws
 
+### 📋 Security Audit
+
+KasDraw has undergone a comprehensive security audit. For detailed security analysis, vulnerability assessment, and recommendations, see:
+
+**[📄 Security Audit Report](./SECURITY_AUDIT_REPORT.md)**
+
+**Audit Summary:**
+- **Overall Security Rating**: HIGH
+- **Critical Vulnerabilities**: None identified
+- **High-Risk Issues**: None identified
+- **Medium-Risk Issues**: 1 (RNG methodology - mitigated by Kasplex L2 speed)
+- **Status**: Approved for testnet operation and well-positioned for mainnet deployment
+
 ## 🎲 Random Number Generation
 
 ### Current Method: Enhanced Fisher-Yates Shuffle
