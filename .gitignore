@@ -12,6 +12,21 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Hardhat files
+cache/
+artifacts/
+
+# Build info
+build-info/
+
+# Test files
+test-*.cjs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

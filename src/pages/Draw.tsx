@@ -7,6 +7,10 @@ const Draw: React.FC = () => {
   const {
     lotteryState,
     canExecuteDrawPublic,
+    timeRemaining,
+    nextDrawTime: contractNextDrawTime,
+    blocksRemaining,
+    nextDrawBlock,
     executeDrawPublic,
     isExecutingDraw,
     refetchCanExecuteDrawPublic,
@@ -21,19 +25,29 @@ const Draw: React.FC = () => {
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
   const [nextDrawTime, setNextDrawTime] = useState<Date | null>(null)
+  const [isTimerReady, setIsTimerReady] = useState(false)
+  const [contractValidated, setContractValidated] = useState(false)
 
-  // Calculate next draw time (3.5 days from now for demo)
+  // Get next draw time from smart contract for enhanced security (with block validation)
   useEffect(() => {
-    // In a real implementation, this would come from the smart contract
-    // For now, we'll simulate a 3.5-day countdown (twice per week)
-    const now = new Date()
-    const next = new Date(now.getTime() + 3.5 * 24 * 60 * 60 * 1000) // 3.5 days from now
-    setNextDrawTime(next)
-  }, [])
+    if (contractNextDrawTime && contractNextDrawTime > 0) {
+      const contractNextDraw = new Date(contractNextDrawTime * 1000)
+      setNextDrawTime(contractNextDraw)
+      setContractValidated(true)
+    } else if (lotteryState?.nextDrawTime) {
+      // Fallback to lottery state if direct contract data not available
+      const contractNextDraw = new Date(lotteryState.nextDrawTime * 1000)
+      setNextDrawTime(contractNextDraw)
+      setContractValidated(true)
+    }
+  }, [contractNextDrawTime, lotteryState])
 
-  // Update countdown timer
+  // Enhanced countdown timer with smart contract validation
   useEffect(() => {
-    if (!nextDrawTime) return
+    if (!nextDrawTime || !contractValidated) {
+      setIsTimerReady(false)
+      return
+    }
 
     const timer = setInterval(() => {
       const now = new Date().getTime()
@@ -46,20 +60,22 @@ const Draw: React.FC = () => {
         const seconds = Math.floor((distance % (1000 * 60)) / 1000)
 
         setTimeLeft({ days, hours, minutes, seconds })
+        setIsTimerReady(false)
       } else {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-        // Refetch to check if draw can be executed
+        setIsTimerReady(true)
+        // Double-check with smart contract before allowing execution
         refetchCanExecuteDrawPublic()
       }
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [nextDrawTime, refetchCanExecuteDrawPublic])
+  }, [nextDrawTime, contractValidated, refetchCanExecuteDrawPublic])
 
   const handleExecuteDraw = async () => {
     try {
       const currentReward = lotteryState ? 
-        Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot) * 0.001)) : 
+        Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot || '0') * 0.001)) : 
         0.1
       
       await executeDrawPublic()
@@ -73,7 +89,19 @@ const Draw: React.FC = () => {
     }
   }
 
-  const isDrawReady = canExecuteDrawPublic && timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0
+  // Enhanced security: Multiple validation layers with block-based timing to prevent premature execution
+  const isDrawReady = Boolean(
+    contractValidated && // Smart contract data loaded
+    isTimerReady && // Local timer confirms time is up
+    canExecuteDrawPublic && // Smart contract confirms execution is allowed (timestamp + block validation)
+    timeLeft.days === 0 && 
+    timeLeft.hours === 0 && 
+    timeLeft.minutes === 0 && 
+    timeLeft.seconds === 0 &&
+    lotteryState?.canExecute && // Additional smart contract validation
+    (blocksRemaining === undefined || blocksRemaining <= 0) && // Block-based validation
+    (timeRemaining === undefined || timeRemaining <= 0) // Direct time remaining validation
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
@@ -120,12 +148,29 @@ const Draw: React.FC = () => {
             </div>
 
             {nextDrawTime && (
-              <div className="mt-6 text-center">
+              <div className="mt-6 text-center space-y-2">
                 <p className="text-gray-300">
                   Next draw available: <span className="text-white font-semibold">
                     {nextDrawTime.toLocaleString()}
                   </span>
                 </p>
+                {/* Enhanced security indicators */}
+                <div className="flex justify-center space-x-4 text-xs">
+                  <div className={`px-2 py-1 rounded ${
+                    timeRemaining !== undefined && timeRemaining <= 0 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'bg-orange-500/20 text-orange-400'
+                  }`}>
+                    Time: {timeRemaining !== undefined ? (timeRemaining <= 0 ? '✓' : `${timeRemaining}s`) : '...'}
+                  </div>
+                  <div className={`px-2 py-1 rounded ${
+                    blocksRemaining !== undefined && blocksRemaining <= 0 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'bg-orange-500/20 text-orange-400'
+                  }`}>
+                    Blocks: {blocksRemaining !== undefined ? (blocksRemaining <= 0 ? '✓' : blocksRemaining) : '...'}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -158,7 +203,7 @@ const Draw: React.FC = () => {
                 <div className="text-center">
                   <span className="text-2xl font-bold text-white">
                     {lotteryState ? 
-                      `${(parseFloat(lotteryState.accumulatedJackpot) * 0.001).toFixed(3)} KAS` : 
+                      `${(parseFloat(lotteryState.accumulatedJackpot || '0') * 0.001).toFixed(3)} KAS` : 
                       '0.100 KAS'
                     }
                   </span>
@@ -174,20 +219,25 @@ const Draw: React.FC = () => {
               {/* Execute Button */}
               <button
                 onClick={handleExecuteDraw}
-                disabled={!isDrawReady || isExecutingDraw}
+                disabled={!isDrawReady || isExecutingDraw || !contractValidated}
                 className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 ${
-                  isDrawReady && !isExecutingDraw
+                  isDrawReady && !isExecutingDraw && contractValidated
                     ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:from-yellow-300 hover:to-orange-400 transform hover:scale-105 shadow-lg hover:shadow-xl'
                     : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}>
-                {isExecutingDraw ? (
+                {!contractValidated ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400 mr-2"></div>
+                    Loading Contract Data...
+                  </div>
+                ) : isExecutingDraw ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
                     Executing Draw...
                   </div>
                 ) : isDrawReady ? (
                   `Execute Draw & Earn ${lotteryState ? 
-                    Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot) * 0.001)).toFixed(3) : 
+                    Math.max(0.1, Math.min(10, parseFloat(lotteryState.accumulatedJackpot || '0') * 0.001)).toFixed(3) : 
                     '0.100'
                   } KAS`
                 ) : (
@@ -227,7 +277,7 @@ const Draw: React.FC = () => {
               </div>
               <div>
                 <div className="text-3xl font-bold text-yellow-400">
-                  {parseFloat(lotteryState.accumulatedJackpot).toFixed(2)} KAS
+                  {parseFloat(lotteryState.accumulatedJackpot || '0').toFixed(2)} KAS
                 </div>
                 <div className="text-gray-300">Jackpot Pool</div>
               </div>

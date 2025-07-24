@@ -24,6 +24,8 @@ export const useUserTickets = () => {
   const [userTickets, setUserTickets] = useState<UserTicket[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Get ticket IDs from player stats
   const ticketIds = useMemo(() => {
@@ -79,12 +81,27 @@ export const useUserTickets = () => {
     query: { enabled: !!latestDraw?.executed }
   })
 
+  // New prize tier for 2 matches
+  const { data: prizeAmount2 } = useReadContract({
+    address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: LOTTERY_ABI,
+    functionName: 'getPrizeAmount',
+    args: [BigInt(latestDraw?.id || 1), BigInt(2)] as const,
+    query: { enabled: !!latestDraw?.executed }
+  })
+
   useEffect(() => {
     const processTickets = async () => {
+      // Enhanced initialization check
+      if (!isInitialized && address) {
+        setIsInitialized(true)
+      }
+
       if (!address) {
         setUserTickets([])
         setLoading(false)
         setError(null)
+        setIsInitialized(false)
         return
       }
 
@@ -97,11 +114,16 @@ export const useUserTickets = () => {
 
       try {
         setError(null)
+        setLoading(true)
         const tickets: UserTicket[] = []
+        let hasValidData = false
 
         for (let i = 0; i < ticketQueries.length; i++) {
           const query = ticketQueries[i]
-          if (query.data) {
+          
+          // Enhanced data validation
+          if (query.data && !query.error && !query.isLoading) {
+            hasValidData = true
             const ticketData = query.data
             const ticketId = ticketIds[i]
             
@@ -126,27 +148,27 @@ export const useUserTickets = () => {
               }
 
               ticket.matches = matches
-              ticket.isWinner = matches >= 3
+              ticket.isWinner = matches >= 2 // Updated to include 2+ matches
 
-              // Set prize information
-              if (matches >= 6) {
+              // Enhanced prize information with new 2-match tier
+              if (matches >= 5) { // Updated for 5-number lottery
                 ticket.prizeType = 'JACKPOT'
-                const amount = prizeAmount6 && typeof prizeAmount6 === 'bigint' ? prizeAmount6 : BigInt(0)
-                ticket.prizeAmount = ethers.formatEther(amount)
-                ticket.canClaim = !ticket.claimed && parseFloat(ticket.prizeAmount) > 0
-              } else if (matches >= 5) {
-                ticket.prizeType = '2nd Prize'
                 const amount = prizeAmount5 && typeof prizeAmount5 === 'bigint' ? prizeAmount5 : BigInt(0)
                 ticket.prizeAmount = ethers.formatEther(amount)
                 ticket.canClaim = !ticket.claimed && parseFloat(ticket.prizeAmount) > 0
               } else if (matches >= 4) {
-                ticket.prizeType = '3rd Prize'
+                ticket.prizeType = '2nd Prize'
                 const amount = prizeAmount4 && typeof prizeAmount4 === 'bigint' ? prizeAmount4 : BigInt(0)
                 ticket.prizeAmount = ethers.formatEther(amount)
                 ticket.canClaim = !ticket.claimed && parseFloat(ticket.prizeAmount) > 0
               } else if (matches >= 3) {
-                ticket.prizeType = '4th Prize'
+                ticket.prizeType = '3rd Prize'
                 const amount = prizeAmount3 && typeof prizeAmount3 === 'bigint' ? prizeAmount3 : BigInt(0)
+                ticket.prizeAmount = ethers.formatEther(amount)
+                ticket.canClaim = !ticket.claimed && parseFloat(ticket.prizeAmount) > 0
+              } else if (matches >= 2) {
+                ticket.prizeType = '4th Prize' // New tier for 2 matches
+                const amount = prizeAmount2 && typeof prizeAmount2 === 'bigint' ? prizeAmount2 : BigInt(0)
                 ticket.prizeAmount = ethers.formatEther(amount)
                 ticket.canClaim = !ticket.claimed && parseFloat(ticket.prizeAmount) > 0
               } else {
@@ -160,15 +182,37 @@ export const useUserTickets = () => {
           }
         }
 
-        // Sort tickets by ID descending (newest first)
-        tickets.sort((a, b) => b.id - a.id)
-        setUserTickets(tickets)
+        // Enhanced data validation before setting state
+        if (hasValidData || tickets.length > 0) {
+          // Sort tickets by ID descending (newest first)
+          tickets.sort((a, b) => b.id - a.id)
+          setUserTickets(tickets)
+          setRetryCount(0) // Reset retry count on success
+        } else if (retryCount < 3) {
+          // Retry logic for failed data loading
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1)
+          }, 1000 * (retryCount + 1)) // Exponential backoff
+          return // Don't set loading to false yet
+        }
       } catch (error) {
         console.error('Error processing tickets:', error)
-        setError('Failed to load tickets. Please refresh the page.')
-        setUserTickets([])
+        
+        // Enhanced error handling with retry logic
+        if (retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1)
+          }, 2000 * (retryCount + 1))
+          setError(`Loading tickets... (attempt ${retryCount + 1}/3)`)
+        } else {
+          setError('Failed to load tickets. Please refresh the page or check your connection.')
+          setUserTickets([])
+        }
       } finally {
-        setLoading(false)
+        // Only set loading to false if we're not retrying
+        if (retryCount >= 3 || error === null) {
+          setLoading(false)
+        }
       }
     }
 
@@ -178,10 +222,11 @@ export const useUserTickets = () => {
     ticketQueries,
     ticketIds,
     latestDraw,
-    prizeAmount6,
     prizeAmount5,
     prizeAmount4,
-    prizeAmount3
+    prizeAmount3,
+    prizeAmount2, // Include new 2-match prize tier
+    retryCount // Include retry count to trigger re-execution
   ])
 
   // Calculate statistics
@@ -207,6 +252,8 @@ export const useUserTickets = () => {
     error,
     stats,
     hasTickets: userTickets.length > 0,
-    isConnected: !!address
+    isConnected: !!address,
+    isInitialized,
+    retryCount
   }
 }

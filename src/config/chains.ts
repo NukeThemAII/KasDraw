@@ -1,5 +1,25 @@
 import { defineChain } from 'viem'
 
+// Local Hardhat development chain
+export const hardhatLocal = defineChain({
+  id: 31337,
+  name: 'Hardhat Local',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ethereum',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: {
+      http: ['http://127.0.0.1:8545'],
+    },
+    public: {
+      http: ['http://127.0.0.1:8545'],
+    },
+  },
+  testnet: true,
+})
+
 // Kasplex EVM Testnet configuration
 export const kasplexTestnet = defineChain({
   id: 167012,
@@ -27,4 +47,4 @@ export const kasplexTestnet = defineChain({
   testnet: true,
 })
 
-export const supportedChains = [kasplexTestnet] as const
+export const supportedChains = [hardhatLocal, kasplexTestnet] as const

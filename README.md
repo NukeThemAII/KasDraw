@@ -1,38 +1,47 @@
-# KasDraw - Decentralized Lottery DApp
+# KasDraw - Kaspa Lottery DApp 🎲
 
-A fully decentralized lottery application built on the Kasplex EVM testnet, featuring an enhanced 5-number selection system, multi-tier prizes, rollover jackpots, transparent on-chain draws, and automated execution system.
+A production-ready decentralized lottery application built on the Kaspa blockchain, featuring automated draws, real-time updates, transparent prize distribution, and a modern web interface.
 
-## 🎯 Features
+## 🌟 Features
 
-- **Enhanced 5-Number System**: Pick 5 numbers from 1-35 for better winning odds
-- **4-Tier Prize System**: Comprehensive prize structure (5/5, 4/5, 3/5, 2/5 matches)
-- **Rollover Jackpots**: Unclaimed jackpots roll over to the next draw
-- **Admin Fee Structure**: 1% of ticket sales for platform maintenance
-- **Secure Smart Contract**: Built with OpenZeppelin standards (HIGH security rating)
-- **Enhanced UI**: Kaspa.org-inspired design with vibrant jackpot display
-- **MetaMask Integration**: Seamless wallet connection and transactions
-- **Real-time Updates**: Live jackpot and draw information from blockchain
-- **Updated Pricing**: 10 KAS per ticket for enhanced prize pools
-- **🆕 Live On-Chain Data**: 100% blockchain integration, no mock data
-- **🆕 Decentralized Draw Execution**: Anyone can trigger draws after 7-day intervals
-- **🆕 Executor Rewards**: 0.1 KAS reward for executing draws
-- **🆕 Automated System**: Comprehensive automation scripts and monitoring
-- **🆕 Security Audited**: Full security review with critical vulnerabilities fixed
+### Core Functionality
+- **Decentralized Lottery**: Smart contract-based lottery system with enhanced security
+- **Automated Draws**: Time-based automatic draw execution (every 3.5 days)
+- **Real-time Updates**: Live jackpot and countdown with 5-10 second refresh intervals
+- **Transparent Prizes**: On-chain prize calculation and distribution
+- **Executor Rewards**: Public execution with 0.1% jackpot rewards (min 0.1 KAS, max 10 KAS)
+
+### User Experience
+- **Modern UI**: React-based responsive web interface with Kaspa branding
+- **Live Data**: Real-time jackpot display and countdown timer
+- **Wallet Integration**: Seamless connection with Kaspa-compatible wallets
+- **Error Handling**: Comprehensive error boundaries and user feedback
+- **Mobile Responsive**: Optimized for all device sizes
+
+### Technical Excellence
+- **Production Ready**: Comprehensive automation and monitoring system
+- **High Performance**: Optimized contract interactions and caching
+- **Robust Logging**: Structured JSON logging for monitoring and debugging
+- **Security First**: Enhanced validation, reentrancy protection, and access controls
 
 ## 🎮 How to Play
 
-1. **Connect Wallet**: Connect your MetaMask wallet to the Kasplex testnet
-2. **Select Numbers**: Choose 5 numbers from 1-35 or use Quick Pick
-3. **Purchase Tickets**: Buy tickets for 10 KAS each
-4. **Wait for Draw**: Draws occur automatically every 7 days
-5. **Claim Prizes**: Check results and claim any winnings from 4 prize tiers
+1. **Connect Wallet**: Click "Connect Wallet" and select your Kaspa wallet
+2. **View Current Draw**: See live jackpot amount and countdown timer
+3. **Purchase Tickets**: Navigate to "Play" page and buy tickets (10 KAS each)
+4. **Select Numbers**: Choose 5 numbers from 1-35 for each ticket
+5. **Wait for Draw**: Draws occur automatically every 3.5 days
+6. **Check Results**: View results on the "Draw" page
+7. **Claim Prizes**: Winners can claim prizes directly from the interface
 
 ## 🏗️ Technical Stack
 
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS with Kaspa theme
-- **Web3**: Wagmi + RainbowKit + Ethers.js v6
+- **Web3**: Wagmi v2 + RainbowKit + Ethers.js v6
 - **Smart Contract**: Solidity 0.8.19 + OpenZeppelin
+- **State Management**: Zustand + React Query
+- **Notifications**: Sonner toast system
 - **Network**: Kasplex EVM Testnet (Chain ID: 167012)
 
 ## 🚀 Quick Start
@@ -42,17 +51,20 @@ A fully decentralized lottery application built on the Kasplex EVM testnet, feat
 - Node.js 18+ and npm/pnpm
 - MetaMask browser extension
 - Kasplex testnet KAS tokens
+- Git
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/your-username/kasdraw.git
    cd KasDraw
    ```
 
-2. **Install dependencies**
+2. **Install dependencies (pnpm recommended)**
    ```bash
+   pnpm install
+   # or
    npm install
    ```
 
@@ -68,7 +80,25 @@ A fully decentralized lottery application built on the Kasplex EVM testnet, feat
    ```
 
 5. **Open browser**
-   Navigate to `http://localhost:5173`
+   Navigate to `http://localhost:5175`
+
+### Development Setup
+
+```bash
+# 1. Start local Hardhat node
+npx hardhat node
+
+# 2. Deploy contracts (in another terminal)
+npx hardhat run scripts/deploy.js --network localhost
+
+# 3. Populate with test data
+npx hardhat run scripts/purchase-tickets.js --network localhost
+
+# 4. Start frontend development server
+npm run dev
+
+# 5. Open browser to http://localhost:5175
+```
 
 ## 📋 Smart Contract Deployment
 
@@ -153,9 +183,13 @@ PRIVATE_KEY=your_private_key_here
 ADMIN_ADDRESS=0x2546BcD3c84621e976D8185a91A922aE77ECEc30
 
 # Frontend configuration
-VITE_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
-VITE_RPC_URL=https://rpc.kasplex.org
+VITE_CONTRACT_ADDRESS=0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97
+VITE_RPC_URL=https://rpc.kasplextest.xyz
 VITE_CHAIN_ID=167012
+
+# Note: Contract address updated with latest Kasplex testnet deployment
+# Deployed: 2025-01-15 with enhanced security features
+# Previous addresses: 0x0165878A594ca255338adfa4d48449f69242Eb8F, 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
 ## 🔐 Security Features
@@ -165,6 +199,10 @@ VITE_CHAIN_ID=167012
 - **Ownable**: Admin access control
 - **Input Validation**: Comprehensive number validation
 - **Safe Math**: Overflow protection with Solidity 0.8+
+- **🆕 Block-Based Timing**: Enhanced security with block number validation
+- **🆕 Dual Validation**: Both time and block-based draw execution controls
+- **🆕 Frontend Security**: Improved UI state management prevents premature draw execution
+- **🆕 Smart Contract Protection**: Multiple layers of validation prevent unauthorized draws
 
 ## 🎲 Random Number Generation
 
@@ -258,13 +296,21 @@ The admin dashboard provides:
 - **📊 Enhanced Events**: Improved logging and transparency
 - **📚 Documentation**: Complete automation guide and setup instructions
 
-### Latest Updates (2025-07-23)
+### Latest Updates (2025-01-27)
 
-#### 🚀 Major Updates
+#### 🔒 Security & Timing Enhancements
+- **Block-Based Timing**: Enhanced draw execution security with block number validation
+- **Dual Validation System**: Both timestamp and block-based controls for draw execution
+- **Frontend Security**: Improved UI state management prevents premature draw button activation
+- **Smart Contract Protection**: Multiple validation layers prevent unauthorized draw execution
+- **Enhanced canExecuteDrawPublic**: Returns comprehensive timing and block information
+- **UI Responsiveness**: Fixed white page issues with better error handling and auto-refresh
+- **Contract Redeployment**: New secure contract deployed at `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+
+#### 🚀 Previous Major Updates (2025-07-23)
 - **Ticket Price Updated**: Changed from 0.1 KAS to 10 KAS for enhanced prize pools
 - **Results Page Fixed**: Resolved white screen issue with comprehensive error handling
 - **Security Audit Completed**: Full security review with HIGH security rating
-- **Contract Redeployment**: New contract deployed at `0xAcef979AB3D7b50657a8334a85407B5c6840F568`
 - **Enhanced Error Handling**: Improved RPC connection resilience and user feedback
 - **Simplified UI**: Streamlined Results page for better user experience
 
@@ -320,11 +366,13 @@ For support and questions:
 
 ## 🚀 Deployment Status
 
-- ✅ Frontend: Complete and functional
-- ✅ Smart Contract: Ready for deployment
-- ✅ Web3 Integration: Fully implemented
-- ⏳ Testnet Deployment: Pending
-- ⏳ Production Deployment: Pending
+- ✅ Frontend: Complete and functional with enhanced security
+- ✅ Smart Contract: Deployed with block-based timing security
+- ✅ Web3 Integration: Fully implemented with improved error handling
+- ✅ Local Development: Ready and tested
+- ✅ Security Enhancements: Block-based timing and dual validation implemented
+- ⏳ Testnet Deployment: Ready for deployment
+- ⏳ Production Deployment: Pending final testing
 
 ---
 

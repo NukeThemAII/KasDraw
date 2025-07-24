@@ -70,6 +70,12 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     uint256 public adminBalance;
     uint256 public lastDrawTime;
     uint256 public nextDrawTime;
+    uint256 public lastDrawBlock;
+    uint256 public nextDrawBlock;
+    
+    // Block-based timing constants for enhanced security
+    uint256 public constant BLOCKS_PER_DRAW = 302400; // ~3.5 days at 10 BPS (Kasplex L2)
+    uint256 public constant MIN_BLOCKS_BETWEEN_DRAWS = 8640; // ~1 day minimum at 10 BPS
     
     mapping(uint256 => Draw) public draws;
     mapping(uint256 => Ticket) public tickets;
@@ -122,6 +128,8 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         ticketCounter = 1;
         lastDrawTime = block.timestamp;
         nextDrawTime = block.timestamp + DRAW_INTERVAL;
+        lastDrawBlock = block.number;
+        nextDrawBlock = block.number + BLOCKS_PER_DRAW;
     }
     
     /**
@@ -208,9 +216,15 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     function executeDrawPublic() external nonReentrant whenNotPaused {
         require(!draws[currentDrawId].executed, "Draw already executed");
         require(drawTickets[currentDrawId].length > 0, "No tickets sold for this draw");
+        
+        // Enhanced security: Dual validation with both timestamp and block number
         require(
             block.timestamp >= nextDrawTime,
             "Draw time not reached yet"
+        );
+        require(
+            block.number >= nextDrawBlock,
+            "Draw block height not reached yet"
         );
         
         // Generate random winning numbers
@@ -309,9 +323,11 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         
         emit DrawExecuted(currentDrawId, winningNumbers, totalPrizePool, draw.jackpotAmount, executor, executorReward);
         
-        // Update draw times
+        // Update draw times with enhanced block-based security
         lastDrawTime = block.timestamp;
         nextDrawTime = block.timestamp + DRAW_INTERVAL;
+        lastDrawBlock = block.number;
+        nextDrawBlock = block.number + BLOCKS_PER_DRAW;
         
         // Start next draw
         currentDrawId++;
@@ -424,21 +440,33 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     // Enhanced View functions
     
     /**
-     * @dev Check if draw can be executed publicly with time information
+     * @dev Check if draw can be executed publicly with enhanced block-based validation
      * @return canExecute Whether the draw can be executed
      * @return timeRemaining Time remaining until draw can be executed (0 if can execute)
      * @return nextDraw Next scheduled draw time
+     * @return blocksRemaining Blocks remaining until draw can be executed
+     * @return nextDrawBlockNumber Next scheduled draw block
      */
-    function canExecuteDrawPublic() external view returns (bool canExecute, uint256 timeRemaining, uint256 nextDraw) {
+    function canExecuteDrawPublic() external view returns (
+        bool canExecute, 
+        uint256 timeRemaining, 
+        uint256 nextDraw,
+        uint256 blocksRemaining,
+        uint256 nextDrawBlockNumber
+    ) {
         if (draws[currentDrawId].executed || drawTickets[currentDrawId].length == 0) {
-            return (false, 0, nextDrawTime);
+            return (false, 0, nextDrawTime, 0, nextDrawBlock);
         }
         
-        if (block.timestamp >= nextDrawTime) {
-            return (true, 0, nextDrawTime);
-        } else {
-            return (false, nextDrawTime - block.timestamp, nextDrawTime);
-        }
+        // Enhanced security: Both timestamp AND block number must be reached
+        bool timeReached = block.timestamp >= nextDrawTime;
+        bool blockReached = block.number >= nextDrawBlock;
+        bool canExec = timeReached && blockReached;
+        
+        uint256 timeRem = timeReached ? 0 : nextDrawTime - block.timestamp;
+        uint256 blockRem = blockReached ? 0 : nextDrawBlock - block.number;
+        
+        return (canExec, timeRem, nextDrawTime, blockRem, nextDrawBlock);
     }
     
     /**
@@ -466,13 +494,31 @@ contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
         uint256 executorReward,
         bool canExecute
     ) {
-        (bool canExec, , ) = this.canExecuteDrawPublic();
+        // Calculate canExecute directly without external call
+        bool canExec = false;
+        if (!draws[currentDrawId].executed && drawTickets[currentDrawId].length > 0) {
+            bool timeReached = block.timestamp >= nextDrawTime;
+            bool blockReached = block.number >= nextDrawBlock;
+            canExec = timeReached && blockReached;
+        }
+        
+        // Calculate executor reward directly without external call
+        uint256 calculatedReward = (accumulatedJackpot * EXECUTOR_REWARD_PERCENTAGE) / 10000;
+        uint256 reward;
+        if (calculatedReward < MIN_EXECUTOR_REWARD) {
+            reward = MIN_EXECUTOR_REWARD;
+        } else if (calculatedReward > MAX_EXECUTOR_REWARD) {
+            reward = MAX_EXECUTOR_REWARD;
+        } else {
+            reward = calculatedReward;
+        }
+        
         return (
             accumulatedJackpot,
             drawTickets[currentDrawId].length,
             totalTicketsSold,
             nextDrawTime,
-            this.getCurrentExecutorReward(),
+            reward,
             canExec
         );
     }

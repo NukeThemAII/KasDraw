@@ -133,7 +133,9 @@ export const LOTTERY_ABI = [
     outputs: [
       { name: 'canExecute', type: 'bool' },
       { name: 'timeRemaining', type: 'uint256' },
-      { name: 'nextDraw', type: 'uint256' }
+      { name: 'nextDrawTime', type: 'uint256' },
+      { name: 'blocksRemaining', type: 'uint256' },
+      { name: 'nextDrawBlock', type: 'uint256' }
     ]
   },
   {
@@ -281,5 +283,5 @@ export const LOTTERY_ABI = [
   }
 ] as const
 
-// Contract address - updated with latest deployment
-export const LOTTERY_CONTRACT_ADDRESS = '0xbbA2893A7cda344be06b0609411a58345Be5D1C4'
+// Contract address - updated with latest deployment (enhanced with block-based timing)
+export const LOTTERY_CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97'

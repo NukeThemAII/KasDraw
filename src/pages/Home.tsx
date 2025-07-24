@@ -11,7 +11,7 @@ const Home = () => {
   // Use dynamic data from smart contract or fallback to static values
   const currentJackpot = lotteryState?.accumulatedJackpot ? 
     parseFloat(lotteryState.accumulatedJackpot).toLocaleString(undefined, { maximumFractionDigits: 2 }) : 
-    '0'
+    '0.00'
   const totalPlayers = lotteryState?.totalTicketsSold ? Math.floor(lotteryState.totalTicketsSold / 3) : 0 // Estimate unique players
   const ticketsSold = lotteryState?.totalTicketsSold || 0
 

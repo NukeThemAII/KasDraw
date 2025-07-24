@@ -45,18 +45,28 @@ async function main() {
             return;
         }
         
-        // Check if draw can be executed
-        const [canExecute, timeRemaining] = await lottery.canExecuteDrawPublic();
+        // Check if draw can be executed (enhanced with block validation)
+        const [canExecute, timeRemaining, nextDrawTime, blocksRemaining, nextDrawBlock] = await lottery.canExecuteDrawPublic();
+        
+        console.log(`\n🔍 Enhanced Draw Validation:`);
+        console.log(`   Can Execute: ${canExecute}`);
+        console.log(`   Time Remaining: ${timeRemaining}s`);
+        console.log(`   Blocks Remaining: ${blocksRemaining}`);
+        console.log(`   Next Draw Time: ${new Date(nextDrawTime * 1000).toLocaleString()}`);
+        console.log(`   Next Draw Block: ${nextDrawBlock}`);
         
         if (!canExecute) {
-            if (timeRemaining > 0) {
+            if (timeRemaining > 0 || blocksRemaining > 0) {
                 const hours = Math.floor(timeRemaining / 3600);
                 const minutes = Math.floor((timeRemaining % 3600) / 60);
-                console.log(`⏰ Draw cannot be executed yet. Time remaining: ${hours}h ${minutes}m`);
+                console.log(`⏰ Draw cannot be executed yet.`);
+                console.log(`   Time remaining: ${hours}h ${minutes}m (${timeRemaining}s)`);
+                console.log(`   Blocks remaining: ${blocksRemaining}`);
             } else {
                 console.log(`❌ Draw cannot be executed. Possible reasons:`);
                 console.log(`   - Draw already executed`);
                 console.log(`   - No tickets sold for current draw`);
+                console.log(`   - Contract validation failed`);
             }
             return;
         }

@@ -5,14 +5,30 @@ import { toast } from 'sonner'
 
 export const useLotteryContract = () => {
 
-  // Get lottery state
+  // Get lottery state with polling for live updates
   const { 
     data: lotteryState, 
-    refetch: refetchLotteryState 
+    refetch: refetchLotteryState,
+    error: lotteryStateError,
+    isLoading: lotteryStateLoading 
   } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getLotteryStats',
+    query: {
+      refetchInterval: 5000, // Refetch every 5 seconds for live data
+      retry: 3, // Retry failed requests 3 times
+      retryDelay: 1000, // Wait 1 second between retries
+      staleTime: 2000, // Consider data stale after 2 seconds
+    },
+  })
+
+  // Debug logging
+  console.log('Lottery Contract Debug:', {
+    address: LOTTERY_CONTRACT_ADDRESS,
+    lotteryState,
+    error: lotteryStateError,
+    isLoading: lotteryStateLoading
   })
 
   // Get current draw ID separately
@@ -61,15 +77,28 @@ export const useLotteryContract = () => {
     },
   })
 
-  // Check if public draw can be executed
+  // Check if public draw can be executed (enhanced with block validation)
   const { 
-    data: canExecuteDrawPublic, 
+    data: canExecuteDrawPublicData, 
     refetch: refetchCanExecuteDrawPublic 
   } = useReadContract({
     address: LOTTERY_CONTRACT_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'canExecuteDrawPublic',
+    query: {
+      refetchInterval: 10000, // Refetch every 10 seconds for countdown updates
+      retry: 3, // Retry failed requests 3 times
+      retryDelay: 1000, // Wait 1 second between retries
+      staleTime: 5000, // Consider data stale after 5 seconds
+    },
   })
+
+  // Parse enhanced canExecuteDrawPublic data
+  const canExecuteDrawPublic = canExecuteDrawPublicData ? canExecuteDrawPublicData[0] : false
+  const timeRemaining = canExecuteDrawPublicData ? Number(canExecuteDrawPublicData[1]) : 0
+  const nextDrawTime = canExecuteDrawPublicData ? Number(canExecuteDrawPublicData[2]) : 0
+  const blocksRemaining = canExecuteDrawPublicData ? Number(canExecuteDrawPublicData[3]) : 0
+  const nextDrawBlock = canExecuteDrawPublicData ? Number(canExecuteDrawPublicData[4]) : 0
   
   // Purchase tickets
   const {
@@ -318,8 +347,12 @@ export const useLotteryContract = () => {
     withdrawAdminFees: withdrawAdminFeesAction,
     emergencyRefundAll,
     
-    // Public draw utilities
+    // Public draw utilities (enhanced with block validation)
     canExecuteDrawPublic,
+    timeRemaining,
+    nextDrawTime,
+    blocksRemaining,
+    nextDrawBlock,
     refetchCanExecuteDrawPublic,
     
     // Loading states

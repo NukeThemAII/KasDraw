@@ -1,283 +1,309 @@
 # KasDraw Lottery Automation Guide
 
+This guide explains how to set up automated lottery draw execution for the KasDraw lottery system.
+
 ## Overview
 
-This guide explains how to set up and use the automated draw execution system for the KasDraw lottery. The system allows for both manual and automated execution of lottery draws.
+The KasDraw lottery system supports automated draw execution through smart contract functions. Draws can be executed automatically when the time interval has passed and there are tickets sold.
 
-## Features
+## Current System Status
 
-### 1. Decentralized Draw Execution
-- **Public Execution**: Anyone can execute draws after the time interval has passed
-- **Incentive System**: Executors receive a 0.1 KAS reward for executing draws
-- **Time-based Triggers**: Draws can be executed every 7 days
-- **Safety Checks**: Multiple validations ensure draws are executed correctly
+- **Draw Frequency**: Twice per week (every 3.5 days)
+- **Auto-execution**: Enabled with public execution rewards
+- **Executor Reward**: 0.1% of jackpot (min 0.1 KAS, max 10 KAS)
+- **Contract Address**: `0x5FbDB2315678afecb367f032d93F642f64180aa3` (localhost)
 
-### 2. Automated Script
-- **Smart Monitoring**: Checks if draws can be executed
-- **Gas Estimation**: Calculates transaction costs before execution
-- **Error Handling**: Comprehensive error reporting and handling
-- **Event Parsing**: Displays draw results and rewards
+## Automation Methods
 
-## Setup Instructions
+### 1. Enhanced Automation Script
 
-### Prerequisites
-
-1. **Node.js and npm** installed
-2. **Hardhat** configured with Kasplex network
-3. **Private key** with sufficient KAS for gas fees
-4. **Deployed contract** address in `deployment-info.json`
-
-### Environment Configuration
-
-1. Ensure your `.env` file contains:
-   ```
-   PRIVATE_KEY=your_private_key_here
-   KASPLEX_RPC_URL=https://rpc.kasplex.com
-   ```
-
-2. Verify `hardhat.config.js` has the Kasplex network configured:
-   ```javascript
-   networks: {
-     kasplex: {
-       url: process.env.KASPLEX_RPC_URL,
-       accounts: [process.env.PRIVATE_KEY]
-     }
-   }
-   ```
-
-## Usage
-
-### Manual Execution
-
-Run the automation script manually:
+The new `scripts/automation.js` provides comprehensive automation:
 
 ```bash
-npm run auto-draw
+# Run automation check
+npx hardhat run scripts/automation.js --network localhost
+
+# For production
+npx hardhat run scripts/automation.js --network kaspa
 ```
 
-Or using Hardhat directly:
+**Features:**
+- Automatic draw execution when ready
+- Comprehensive logging and error handling
+- Real-time lottery statistics
+- Transaction confirmation and gas tracking
+
+### 2. Cron Job Setup (Production)
+
+**Recommended Schedule**: Every 2 hours to ensure timely execution
 
 ```bash
-npx hardhat run scripts/autoExecuteDraw.js --network kasplex
+# Edit crontab
+crontab -e
+
+# Add entry to check every 2 hours
+0 */2 * * * cd /path/to/kasdraw && npx hardhat run scripts/automation.js --network kaspa >> /var/log/kasdraw-automation.log 2>&1
 ```
 
-### Automated Execution
-
-#### Option 1: Cron Job (Linux/macOS)
-
-1. Open crontab:
-   ```bash
-   crontab -e
-   ```
-
-2. Add a job to run every hour:
-   ```bash
-   0 * * * * cd /path/to/KasDraw && npm run auto-draw >> /var/log/kasdraw-auto.log 2>&1
-   ```
-
-3. Or run every 6 hours:
-   ```bash
-   0 */6 * * * cd /path/to/KasDraw && npm run auto-draw >> /var/log/kasdraw-auto.log 2>&1
-   ```
-
-#### Option 2: Windows Task Scheduler
-
-1. Open Task Scheduler
-2. Create Basic Task
-3. Set trigger (e.g., daily at specific time)
-4. Set action to run:
-   - Program: `cmd`
-   - Arguments: `/c cd /d "C:\path\to\KasDraw" && npm run auto-draw`
-
-#### Option 3: GitHub Actions (CI/CD)
-
-Create `.github/workflows/auto-draw.yml`:
-
-```yaml
-name: Auto Execute Draw
-
-on:
-  schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
-  workflow_dispatch:  # Manual trigger
-
-jobs:
-  auto-draw:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm install
-      - run: npm run auto-draw
-        env:
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          KASPLEX_RPC_URL: ${{ secrets.KASPLEX_RPC_URL }}
+**Alternative for high-frequency checking:**
+```bash
+# Check every 30 minutes during peak times
+*/30 * * * * cd /path/to/kasdraw && npx hardhat run scripts/automation.js --network kaspa
 ```
 
-## Smart Contract Functions
+### 3. Manual Execution (Backup)
 
-### Public Draw Execution
+For testing or emergency execution:
 
-```solidity
-function executeDrawPublic() external nonReentrant whenNotPaused
+```bash
+# Check if draw can be executed
+npx hardhat console --network localhost
+
+# In the console:
+const lottery = await ethers.getContractAt("KasDrawLottery", "0x5FbDB2315678afecb367f032d93F642f64180aa3")
+const canExecute = await lottery.canExecuteDrawPublic()
+console.log("Can execute:", canExecute)
+
+if (canExecute) {
+  const tx = await lottery.executeDrawPublic()
+  console.log("Transaction:", tx.hash)
+}
 ```
 
-**Requirements:**
-- Draw interval (7 days) has passed since last draw
-- Current draw has not been executed
-- At least one ticket sold for current draw
-- Contract is not paused
+## Configuration
 
-**Rewards:**
-- Executor receives 0.1 KAS if contract has sufficient balance
-- Event `DrawExecutedByPublic` is emitted
+### Environment Variables
 
-### Timing Functions
+```env
+# Required for production
+PRIVATE_KEY=your_executor_private_key
+KASPA_RPC_URL=https://rpc.kasplextest.xyz/
 
-```solidity
-// Check if draw can be executed
-function canExecuteDrawPublic() external view returns (bool canExecute, uint256 timeRemaining)
-
-// Get next draw execution time
-function getNextDrawTime() external view returns (uint256 nextDrawTime)
+# Optional
+CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+LOG_LEVEL=info
 ```
 
-## Monitoring and Logging
+### Network Configuration
 
-### Script Output
+Update contract address in `src/config/lottery.ts` after each deployment:
 
-The automation script provides detailed logging:
-
-```
-🎲 Starting automated draw execution check...
-📍 Contract address: 0x...
-🔑 Executor address: 0x...
-
-📊 Current Lottery State:
-   Draw ID: 5
-   Total Tickets Sold: 42
-   Accumulated Jackpot: 156.7 KAS
-   Contract Paused: false
-
-🎫 Tickets for current draw: 8
-💰 Executor balance: 10.5 KAS
-
-⛽ Estimating gas for draw execution...
-   Estimated gas: 245,678
-   Gas price: 1.2 gwei
-   Estimated cost: 0.0029 KAS
-
-🎲 Executing draw 5...
-📝 Transaction hash: 0x...
-✅ Draw executed successfully!
-
-🎯 Draw Results:
-   Draw ID: 5
-   Winning Numbers: [7, 14, 23, 31, 42, 49]
-   Total Prize Pool: 156.7 KAS
-   Jackpot Amount: 94.02 KAS
-
-💰 Executor Reward:
-   Executor: 0x...
-   Reward: 0.1 KAS
+```typescript
+export const LOTTERY_CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
 ```
 
-### Error Handling
+## Monitoring & Logging
 
-Common scenarios handled:
-- Draw already executed
-- No tickets sold
-- Time interval not reached
-- Insufficient gas
-- Network connectivity issues
-- Contract paused
+### Log Files
 
-## Security Considerations
+Automation generates structured logs:
 
-### Private Key Management
+- `logs/executions.json`: Successful draw executions (last 100)
+- `logs/errors.json`: Error logs and failures (last 50)
+- System logs: `/var/log/kasdraw-automation.log`
 
-1. **Never commit private keys** to version control
-2. **Use environment variables** for sensitive data
-3. **Rotate keys regularly** for production systems
-4. **Use hardware wallets** for high-value operations
+### Log Structure
 
-### Execution Safety
+**Execution Log:**
+```json
+{
+  "timestamp": "2024-12-27T12:00:00.000Z",
+  "txHash": "0x...",
+  "blockNumber": 12345,
+  "gasUsed": "150000",
+  "oldJackpot": "69.3",
+  "newJackpot": "0.1",
+  "executorReward": "0.693"
+}
+```
 
-1. **Gas Limits**: Script sets reasonable gas limits
-2. **Balance Checks**: Verifies executor has sufficient funds
-3. **State Validation**: Multiple checks before execution
-4. **Error Recovery**: Graceful handling of failures
+**Error Log:**
+```json
+{
+  "timestamp": "2024-12-27T12:00:00.000Z",
+  "error": "Error message",
+  "stack": "Full stack trace"
+}
+```
 
-### Monitoring
+### Health Monitoring
 
-1. **Log Analysis**: Monitor logs for errors or unusual patterns
-2. **Balance Alerts**: Set up alerts for low executor balance
-3. **Network Status**: Monitor Kasplex network health
-4. **Contract Events**: Track draw executions and rewards
+Regular checks:
+
+1. **Executor Balance**: Ensure sufficient KAS for gas fees
+2. **Draw Frequency**: Verify draws execute every 3.5 days
+3. **Error Rate**: Monitor `logs/errors.json` for issues
+4. **Network Status**: Check RPC connectivity
+
+## Production Deployment
+
+### 1. Server Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Compile contracts
+npx hardhat compile
+
+# Deploy to production network
+npx hardhat run scripts/deploy.js --network kaspa
+
+# Update frontend configuration
+# Edit src/config/lottery.ts with new contract address
+
+# Test automation
+npx hardhat run scripts/automation.js --network kaspa
+```
+
+### 2. Cron Configuration
+
+```bash
+# Create automation user
+sudo useradd -m kasdraw-automation
+sudo su - kasdraw-automation
+
+# Setup cron
+crontab -e
+
+# Production schedule (every 2 hours)
+0 */2 * * * cd /home/kasdraw-automation/kasdraw && /usr/bin/node /usr/bin/npx hardhat run scripts/automation.js --network kaspa >> /var/log/kasdraw-automation.log 2>&1
+
+# Log rotation
+0 0 * * 0 /usr/sbin/logrotate /etc/logrotate.d/kasdraw-automation
+```
+
+### 3. Monitoring Setup
+
+```bash
+# Create monitoring script
+cat > /home/kasdraw-automation/monitor.sh << 'EOF'
+#!/bin/bash
+LOG_FILE="/var/log/kasdraw-automation.log"
+ERROR_COUNT=$(tail -100 "$LOG_FILE" | grep -c "❌")
+
+if [ "$ERROR_COUNT" -gt 5 ]; then
+    echo "High error rate detected: $ERROR_COUNT errors in last 100 lines" | mail -s "KasDraw Automation Alert" admin@example.com
+fi
+EOF
+
+chmod +x /home/kasdraw-automation/monitor.sh
+
+# Add to cron (daily check)
+0 9 * * * /home/kasdraw-automation/monitor.sh
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **"Draw interval not reached yet"**
-   - Wait for the 7-day interval to pass
-   - Check `getNextDrawTime()` for exact timing
+1. **"Draw not ready yet"**
+   - Normal behavior, wait for next interval
+   - Check `nextDrawTime` in logs
 
-2. **"No tickets sold for this draw"**
-   - Normal behavior, script will skip execution
-   - Draw will remain open for ticket sales
+2. **"Insufficient funds"**
+   - Top up executor account with KAS
+   - Minimum: 1 KAS for gas fees
 
-3. **"Insufficient funds for gas"**
-   - Add more KAS to executor wallet
-   - Check current gas prices
+3. **"Contract call failed"**
+   - Check network connectivity
+   - Verify contract address is correct
+   - Ensure contract is not paused
 
-4. **"Contract is paused"**
-   - Contact contract owner
-   - Check for emergency situations
+4. **"Transaction timeout"**
+   - Increase gas limit in script
+   - Check network congestion
 
-5. **"Network connection failed"**
-   - Check Kasplex RPC endpoint
-   - Verify internet connectivity
-   - Try alternative RPC endpoints
+### Recovery Procedures
 
-### Debug Mode
+1. **Missed Draw**:
+   ```bash
+   # Check current status
+   npx hardhat run scripts/automation.js --network kaspa
+   
+   # Force execution if needed
+   npx hardhat console --network kaspa
+   # Manual execution commands...
+   ```
 
-For detailed debugging, modify the script to include:
+2. **Contract Upgrade**:
+   ```bash
+   # Deploy new contract
+   npx hardhat run scripts/deploy.js --network kaspa
+   
+   # Update configuration
+   # Edit src/config/lottery.ts
+   # Update scripts/automation.js if needed
+   
+   # Test new deployment
+   npx hardhat run scripts/automation.js --network kaspa
+   ```
 
-```javascript
-// Add at the top of autoExecuteDraw.js
-const DEBUG = process.env.DEBUG === 'true';
+## Security Best Practices
 
-// Use throughout the script
-if (DEBUG) {
-    console.log('Debug info:', debugData);
-}
-```
+1. **Private Key Security**:
+   - Use hardware wallet for production
+   - Store keys in secure environment variables
+   - Never commit keys to version control
 
-Run with debug mode:
+2. **Access Control**:
+   - Dedicated automation user account
+   - Minimal system permissions
+   - Regular security audits
+
+3. **Monitoring**:
+   - Real-time error alerts
+   - Transaction monitoring
+   - Balance threshold alerts
+
+## Maintenance Schedule
+
+### Daily
+- Check automation logs for errors
+- Verify last execution time
+
+### Weekly
+- Review executor account balance
+- Check system resource usage
+- Validate draw frequency
+
+### Monthly
+- Update dependencies
+- Review and rotate logs
+- Performance optimization
+
+### Quarterly
+- Security audit
+- Backup and disaster recovery testing
+- Documentation updates
+
+## Support & Escalation
+
+### Log Analysis
 ```bash
-DEBUG=true npm run auto-draw
+# Check recent executions
+tail -20 logs/executions.json
+
+# Check for errors
+tail -20 logs/errors.json
+
+# System logs
+tail -50 /var/log/kasdraw-automation.log
 ```
 
-## Best Practices
+### Emergency Contacts
+- Development Team: dev@kasdraw.com
+- System Admin: admin@kasdraw.com
+- 24/7 Support: +1-XXX-XXX-XXXX
 
-1. **Regular Monitoring**: Check automation logs regularly
-2. **Balance Management**: Maintain sufficient KAS for gas fees
-3. **Backup Executors**: Set up multiple automation instances
-4. **Testing**: Test on testnet before production deployment
-5. **Documentation**: Keep this guide updated with changes
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Review contract events and logs
-3. Verify network and configuration
-4. Contact the development team
+### Escalation Matrix
+1. **Level 1**: Automation script errors (auto-retry)
+2. **Level 2**: Network connectivity issues (manual intervention)
+3. **Level 3**: Contract failures (development team)
+4. **Level 4**: Security incidents (immediate escalation)
 
 ---
 
-*Last updated: [Current Date]*
-*Version: 1.0*
+**Last Updated**: December 27, 2024
+**Version**: 2.0
+**Next Review**: March 27, 2025
