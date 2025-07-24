@@ -284,4 +284,4 @@ export const LOTTERY_ABI = [
 ] as const
 
 // Contract address - updated with latest deployment (enhanced with block-based timing)
-export const LOTTERY_CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97'
+export const LOTTERY_CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3'

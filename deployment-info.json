@@ -1,8 +1,8 @@
 {
-  "contractAddress": "0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97",
-  "deploymentHash": "0x18674bb1963a8eadcb53ae19d2c79ea842631d6478f3fafdcd19e66785dc1bc4",
-  "owner": "0x71d7aCcfB0dFB579b8f00de612890FB875E16eef",
+  "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deploymentHash": "0xe38a9954b47d898ac16fecc0d36e44fa9a84b66b4757cc42b6436c0e9e1f7d0c",
+  "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   "network": "Kasplex EVM Testnet",
   "chainId": 167012,
-  "deployedAt": "2025-07-24T11:44:03.099Z"
+  "deployedAt": "2025-07-24T17:39:52.366Z"
 }
