@@ -5,7 +5,7 @@ export const ADMIN_ADDRESS = '0x71d7aCcfB0dFB579b8f00de612890FB875E16eef'
 
 // Enhanced Lottery game constants - Easier to Win!
 export const LOTTERY_CONFIG = {
-  TICKET_PRICE: '10', // KAS
+  TICKET_PRICE: '1', // KAS
   MIN_NUMBER: 1,
   MAX_NUMBER: 35, // Reduced from 49 to 35 for better odds
   NUMBERS_PER_TICKET: 5, // Reduced from 6 to 5 for easier wins
@@ -284,4 +284,4 @@ export const LOTTERY_ABI = [
 ] as const
 
 // Contract address - updated with latest deployment (enhanced with block-based timing)
-export const LOTTERY_CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+export const LOTTERY_CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x2C8FfbCa4B3aD007c5a6A6b7Af5E82b1DBa6817D'
