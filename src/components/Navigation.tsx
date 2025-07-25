@@ -3,6 +3,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount } from 'wagmi'
 import { Ticket, Home, Trophy, User, Settings } from 'lucide-react'
 import { ADMIN_ADDRESS } from '../config/lottery'
+import NetworkSwitcher from './NetworkSwitcher'
 
 const Navigation = () => {
   const location = useLocation()

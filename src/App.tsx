@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { Suspense, Component, ReactNode } from 'react'
-import Home from './pages/Home'
-import Play from './pages/Play'
+import HomeV2 from './pages/HomeV2'
+import PlayV2 from './pages/PlayV2'
 import Draw from './pages/Draw'
-import Results from './pages/Results'
+import ResultsV2 from './pages/ResultsV2'
 import MyTickets from './pages/MyTickets'
 import AdminDashboard from './pages/AdminDashboard'
 import Navigation from './components/Navigation'
@@ -69,10 +69,10 @@ function App() {
           <main className="container mx-auto px-4 py-8">
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/play" element={<Play />} />
+                <Route path="/" element={<HomeV2 />} />
+                <Route path="/play" element={<PlayV2 />} />
                 <Route path="/draw" element={<Draw />} />
-                <Route path="/results" element={<Results />} />
+                <Route path="/results" element={<ResultsV2 />} />
                 <Route path="/my-tickets" element={<MyTickets />} />
                 <Route path="/admin" element={<AdminDashboard />} />
               </Routes>

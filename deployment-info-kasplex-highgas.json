@@ -1,0 +1,25 @@
+{
+  "contractName": "KasDrawLotteryV2Fixed",
+  "contractAddress": "0x194d33A6A4d9fFF6476125374b095779C561588d",
+  "deploymentHash": "0xcf11e9351cb4ac333cc2b29dac625c9da5014008ccfe476118c398f1d1500454",
+  "deployer": "0x71d7aCcfB0dFB579b8f00de612890FB875E16eef",
+  "owner": "0x71d7aCcfB0dFB579b8f00de612890FB875E16eef",
+  "network": "kasplex-testnet",
+  "chainId": 167012,
+  "rpcUrl": "https://rpc.kasplextest.xyz",
+  "explorerUrl": "https://frontend.kasplextest.xyz/address/0x194d33A6A4d9fFF6476125374b095779C561588d",
+  "deployedAt": "2025-07-25T09:06:56.448Z",
+  "gasSettings": {
+    "gasLimit": 6000000,
+    "maxFeePerGas": "5000000000000",
+    "maxPriorityFeePerGas": "5000000000000"
+  },
+  "fixes": [
+    "Fixed prize claiming logic",
+    "Corrected accounting mathematics",
+    "Fixed draw data structure access",
+    "Improved percentage calculations",
+    "Enhanced error handling",
+    "Deployed with HIGH GAS settings for reliability"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "contractName": "KasDrawLotteryV2",
+  "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deploymentHash": "0x29108cc2a672577887e10cca6d578ef8851e5a146134d895c691d29272aa93dc",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "network": "localhost",
+  "chainId": "unknown",
+  "deployedAt": "2025-07-25T07:42:55.072Z",
+  "gasUsed": "30000000",
+  "contractConfig": {
+    "ticketPrice": "10 KAS",
+    "numberRange": "1-35",
+    "numbersPerTicket": 5,
+    "drawInterval": "3.5 days",
+    "prizeStructure": {
+      "jackpot": "50%",
+      "secondPrize": "25%",
+      "thirdPrize": "15%",
+      "fourthPrize": "10%"
+    }
+  }
+}

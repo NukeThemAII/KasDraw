@@ -3,7 +3,7 @@ import { hardhatLocal, kasplexTestnet } from './chains'
 import { http } from 'viem'
 
 // Use Kasplex testnet for production deployment
-const isDevelopment = false // Set to true only for local development
+const isDevelopment = false // Set to false to use Kasplex testnet
 
 export const config = getDefaultConfig({
   appName: 'KasDraw Lottery',
