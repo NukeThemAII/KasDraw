@@ -1,297 +1,902 @@
-// Lottery contract configuration and constants
+/**
+ * DecentralizedLottery Configuration
+ * Updated for the new fully decentralized lottery contract
+ */
 
-// Admin wallet address
-export const ADMIN_ADDRESS = '0x71d7aCcfB0dFB579b8f00de612890FB875E16eef'
-
-// Enhanced Lottery game constants - Easier to Win!
 export const LOTTERY_CONFIG = {
-  TICKET_PRICE: '10.0', // 10.0 KAS per ticket (as deployed)
+  // Contract Configuration
+  TICKET_PRICE: '0.1', // 0.1 KAS per ticket
+  NUMBERS_PER_TICKET: 5,
+  MAX_NUMBER: 35,
   MIN_NUMBER: 1,
-  MAX_NUMBER: 49,
-  NUMBERS_PER_TICKET: 6,
-  DRAWS_PER_WEEK: 2,
-  DRAW_DAYS: [3, 6], // Wednesday (3) and Saturday (6)
-  DRAW_TIME: '20:00', // 8 PM
-  DRAW_INTERVAL_HOURS: 84, // 3.5 days between draws
-  EXECUTOR_REWARD_PERCENTAGE: 1, // 1% of prize pool
-  MIN_EXECUTOR_REWARD: '0.1', // Minimum 0.1 KAS
-  MAX_EXECUTOR_REWARD: '10', // Maximum 10 KAS
-} as const
+  MAX_TICKETS_PER_BATCH: 50,
+  
+  // Timing Configuration
+  DRAW_INTERVAL: {
+    PRODUCTION: 3600, // 1 hour in seconds
+    TESTING: 600, // 10 minutes in seconds
+  },
+  
+  // Economic Configuration (in basis points)
+  FEES: {
+    PROTOCOL_FEE: 50, // 0.5%
+    EXECUTOR_REWARD: 25, // 0.25%
+  },
+  
+  // Prize Distribution (in basis points)
+  PRIZE_DISTRIBUTION: {
+    JACKPOT: 5000, // 50% for 5 matches
+    SECOND_PRIZE: 2500, // 25% for 4 matches
+    THIRD_PRIZE: 1500, // 15% for 3 matches
+    FOURTH_PRIZE: 925, // 9.25% for 2 matches
+  },
+  
+  // Security Thresholds
+  EMERGENCY_PAUSE_THRESHOLD: '100', // 100 KAS
+  MIN_EXECUTOR_REWARD: '0.05', // 0.05 KAS
+  MAX_EXECUTOR_REWARD: '5', // 5 KAS
+  
+  // UI Configuration
+  UI: {
+    MAX_DISPLAY_TICKETS: 20,
+    REFRESH_INTERVAL: 30000, // 30 seconds
+    ANIMATION_DURATION: 300,
+    TOAST_DURATION: 5000,
+  },
+  
+  // Analytics Configuration
+  ANALYTICS: {
+    ENABLE_REAL_TIME: true,
+    UPDATE_INTERVAL: 15000, // 15 seconds
+    CHART_DATA_POINTS: 50,
+  },
+};
 
-// Enhanced Prize structure with more winning tiers
-export const PRIZE_STRUCTURE = {
-  JACKPOT: 50, // 5 matches (reduced to fund more tiers)
-  SECOND_PRIZE: 20, // 4 matches
-  THIRD_PRIZE: 15, // 3 matches
-  FOURTH_PRIZE: 10, // 2 matches - NEW TIER!
-  FIFTH_PRIZE: 5, // Future expansion
-  ADMIN_FEE: 1,
-} as const
-
-// Winning odds calculation (for display)
-export const WINNING_ODDS = {
-  JACKPOT: '1 in 324,632', // C(35,5)
-  SECOND_PRIZE: '1 in 7,624', // 4 out of 5 matches
-  THIRD_PRIZE: '1 in 344', // 3 out of 5 matches
-  FOURTH_PRIZE: '1 in 35', // 2 out of 5 matches
-  ANY_PRIZE: '1 in 32', // Any winning combination
-} as const
-
-// Enhanced Contract ABI - Complete interface for KasDrawLottery v2
+// Contract ABI for DecentralizedLottery
 export const LOTTERY_ABI = [
-  // Core Functions
+  // Constructor
   {
-    type: 'function',
-    name: 'purchaseTickets',
-    stateMutability: 'payable',
-    inputs: [{ name: 'ticketNumbers', type: 'uint256[5][]' }], // Updated to 5 numbers
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'executeDraw',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'executeDrawManual',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'winningNumbers', type: 'uint256[5]' }], // Updated to 5 numbers
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'executeDrawPublic',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'claimPrize',
-    stateMutability: 'nonpayable',
-    inputs: [{ name: 'ticketId', type: 'uint256' }],
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'withdrawAdminFees',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'emergencyRefundAll',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'pause',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: []
-  },
-  {
-    type: 'function',
-    name: 'unpause',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: []
-  },
-  // Enhanced View Functions
-  {
-    type: 'function',
-    name: 'currentDrawId',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }]
-  },
-  {
-    type: 'function',
-    name: 'adminBalance',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }]
-  },
-  {
-    type: 'function',
-    name: 'paused',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'bool' }]
-  },
-  {
-    type: 'function',
-    name: 'canExecuteDrawPublic',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [
-      { name: 'canExecute', type: 'bool' },
-      { name: 'timeRemaining', type: 'uint256' },
-      { name: 'nextDrawTime', type: 'uint256' },
-      { name: 'blocksRemaining', type: 'uint256' },
-      { name: 'nextDrawBlock', type: 'uint256' }
-    ]
-  },
-  {
-    type: 'function',
-    name: 'getCurrentExecutorReward',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: 'reward', type: 'uint256' }]
-  },
-  {
-    type: 'function',
-    name: 'getLotteryStats',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [
-      { name: 'currentJackpot', type: 'uint256' },
-      { name: 'ticketsSoldThisDraw', type: 'uint256' },
-      { name: 'totalTickets', type: 'uint256' },
-      { name: 'nextDraw', type: 'uint256' },
-      { name: 'executorReward', type: 'uint256' },
-      { name: 'canExecute', type: 'bool' }
-    ]
-  },
-  {
-    type: 'function',
-    name: 'getTicket',
-    stateMutability: 'view',
-    inputs: [{ name: 'ticketId', type: 'uint256' }],
-    outputs: [
-      { name: 'player', type: 'address' },
-      { name: 'numbers', type: 'uint256[5]' }, // Updated to 5 numbers
-      { name: 'drawId', type: 'uint256' },
-      { name: 'claimed', type: 'bool' },
-      { name: 'purchaseTime', type: 'uint256' }
-    ]
-  },
-  {
-    type: 'function',
-    name: 'getDraw',
-    stateMutability: 'view',
-    inputs: [{ name: 'drawId', type: 'uint256' }],
-    outputs: [
-      { name: 'id', type: 'uint256' },
-      { name: 'winningNumbers', type: 'uint256[5]' }, // Updated to 5 numbers
-      { name: 'timestamp', type: 'uint256' },
-      { name: 'totalPrizePool', type: 'uint256' },
-      { name: 'jackpotAmount', type: 'uint256' },
-      { name: 'executorReward', type: 'uint256' },
-      { name: 'executor', type: 'address' },
-      { name: 'executed', type: 'bool' }
-    ]
-  },
-  {
-    type: 'function',
-    name: 'getPlayerStats',
-    stateMutability: 'view',
-    inputs: [{ name: 'player', type: 'address' }],
-    outputs: [
-      { name: 'totalTickets', type: 'uint256' },
-      { name: 'totalWinnings', type: 'uint256' },
-      { name: 'ticketIds', type: 'uint256[]' },
-      { name: 'totalDeposits', type: 'uint256' },
-      { name: 'lastPlayTime', type: 'uint256' }
-    ]
-  },
-  {
-    type: 'function',
-    name: 'getPrizeAmount',
-    stateMutability: 'view',
-    inputs: [
-      { name: 'drawId', type: 'uint256' },
-      { name: 'matches', type: 'uint256' }
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "_testingMode",
+        "type": "bool"
+      }
     ],
-    outputs: [{ name: '', type: 'uint256' }]
+    "stateMutability": "nonpayable",
+    "type": "constructor"
   },
+  
+  // Main Functions
   {
-    type: 'function',
-    name: 'getWinnersCount',
-    stateMutability: 'view',
-    inputs: [
-      { name: 'drawId', type: 'uint256' },
-      { name: 'matches', type: 'uint256' }
+    "inputs": [
+      {
+        "internalType": "uint256[5][]",
+        "name": "ticketNumbers",
+        "type": "uint256[5][]"
+      }
     ],
-    outputs: [{ name: '', type: 'uint256' }]
+    "name": "purchaseTickets",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
   },
   {
-    type: 'function',
-    name: 'getDrawWinners',
-    stateMutability: 'view',
-    inputs: [{ name: 'drawId', type: 'uint256' }],
-    outputs: [
-      { name: 'winners', type: 'address[]' },
-      { name: 'matchCounts', type: 'uint256[]' },
-      { name: 'prizeAmounts', type: 'uint256[]' },
-      { name: 'claimed', type: 'bool[]' }
-    ]
+    "inputs": [],
+    "name": "executeDraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    type: 'function',
-    name: 'getRolloverAmount',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: 'rolloverAmount', type: 'uint256' }]
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "ticketIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "claimPrizes",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
+  
+  // View Functions
+  {
+    "inputs": [],
+    "name": "getDrawInfo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "currentDraw",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nextDrawTimestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nextDrawBlockNumber",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "currentJackpot",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ticketsSold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "canExecute",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "executorReward",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTimeUntilDraw",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "timeRemaining",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "blocksRemaining",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "drawId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getDraw",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[5]",
+        "name": "winningNumbers",
+        "type": "uint256[5]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalPrizePool",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "jackpotAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalTickets",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "executed",
+        "type": "bool"
+      },
+      {
+        "internalType": "address",
+        "name": "executor",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "randomSeed",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "drawId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getDrawWinners",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "winners5",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winners4",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winners3",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winners2",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "prize5",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "prize4",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "prize3",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "prize2",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "ticketId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTicket",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[5]",
+        "name": "numbers",
+        "type": "uint256[5]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "drawId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "claimed",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "purchaseTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "batchId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      }
+    ],
+    "name": "getPlayerStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalTickets",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalWinnings",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalSpent",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "biggestWin",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastPlayTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ticketIds",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAnalytics",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "totalDraws",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalTicketsSold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalPrizesDistributed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalProtocolFees",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "averageJackpot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "largestJackpot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalPlayers",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DecentralizedLottery.LotteryAnalytics",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "drawId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPlayerTicketsByDraw",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "canExecuteDraw",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  
+  // Testing Functions (only available in testing mode)
+  {
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "_enabled",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_testInterval",
+        "type": "uint256"
+      }
+    ],
+    "name": "setTestingMode",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "forceExecuteDrawForTesting",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  
+  // Emergency Functions
+  {
+    "inputs": [],
+    "name": "emergencyPause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "emergencyUnpause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  
+  // State Variables (public getters)
+  {
+    "inputs": [],
+    "name": "currentDrawId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "accumulatedJackpot",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "testingMode",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "emergencyPaused",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  
   // Events
   {
-    type: 'event',
-    name: 'TicketPurchased',
-    inputs: [
-      { name: 'player', type: 'address', indexed: true },
-      { name: 'ticketId', type: 'uint256', indexed: true },
-      { name: 'drawId', type: 'uint256', indexed: true },
-      { name: 'numbers', type: 'uint256[5]' },
-      { name: 'timestamp', type: 'uint256' }
-    ]
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "drawId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "ticketIds",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalCost",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "batchId",
+        "type": "uint256"
+      }
+    ],
+    "name": "TicketsPurchased",
+    "type": "event"
   },
   {
-    type: 'event',
-    name: 'DrawExecuted',
-    inputs: [
-      { name: 'drawId', type: 'uint256', indexed: true },
-      { name: 'winningNumbers', type: 'uint256[5]' },
-      { name: 'totalPrizePool', type: 'uint256' },
-      { name: 'jackpotAmount', type: 'uint256' },
-      { name: 'executor', type: 'address', indexed: true },
-      { name: 'executorReward', type: 'uint256' }
-    ]
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "drawId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[5]",
+        "name": "winningNumbers",
+        "type": "uint256[5]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalPrizePool",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "jackpotAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "executor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "executorReward",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalTickets",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "randomSeed",
+        "type": "uint256"
+      }
+    ],
+    "name": "DrawExecuted",
+    "type": "event"
   },
   {
-    type: 'event',
-    name: 'DrawExecutedByPublic',
-    inputs: [
-      { name: 'executor', type: 'address', indexed: true },
-      { name: 'drawId', type: 'uint256', indexed: true },
-      { name: 'reward', type: 'uint256' }
-    ]
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "ticketIds",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "winCount",
+        "type": "uint256"
+      }
+    ],
+    "name": "PrizesClaimed",
+    "type": "event"
   },
   {
-    type: 'event',
-    name: 'EmergencyRefund',
-    inputs: [
-      { name: 'player', type: 'address', indexed: true },
-      { name: 'amount', type: 'uint256' }
-    ]
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "fromDrawId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "toDrawId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "JackpotRollover",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "jackpotAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "threshold",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "EmergencyCircuitBreaker",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalDraws",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalTickets",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalPrizes",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "averageJackpot",
+        "type": "uint256"
+      }
+    ],
+    "name": "AnalyticsUpdated",
+    "type": "event"
+  },
+  
+  // Fallback and Receive
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "fallback"
   }
-] as const
+];
 
-// Contract addresses for different networks
-const CONTRACT_ADDRESSES = {
-  kasplex: '0x98a05a361a79eF343C8b0b666566145076AEE5ca', // Kasplex testnet
-  igra: '0x8ff583fC58a78ad630A3184826DFC7B4e25072AE', // Igra Labs devnet (updated with 0.1 KAS price)
-  hardhat: '0x5FbDB2315678afecb367f032d93F642f64180aa3' // Local hardhat
-}
+// Helper functions for the frontend
+export const LOTTERY_HELPERS = {
+  // Format ticket price for display
+  formatTicketPrice: (price: string): string => {
+    return `${price} KAS`;
+  },
+  
+  // Calculate total cost for multiple tickets
+  calculateTotalCost: (ticketCount: number): string => {
+    return (parseFloat(LOTTERY_CONFIG.TICKET_PRICE) * ticketCount).toString();
+  },
+  
+  // Validate ticket numbers
+  validateTicketNumbers: (numbers: number[]): { valid: boolean; error?: string } => {
+    if (numbers.length !== LOTTERY_CONFIG.NUMBERS_PER_TICKET) {
+      return { valid: false, error: `Must select exactly ${LOTTERY_CONFIG.NUMBERS_PER_TICKET} numbers` };
+    }
+    
+    for (const num of numbers) {
+      if (num < LOTTERY_CONFIG.MIN_NUMBER || num > LOTTERY_CONFIG.MAX_NUMBER) {
+        return { valid: false, error: `Numbers must be between ${LOTTERY_CONFIG.MIN_NUMBER} and ${LOTTERY_CONFIG.MAX_NUMBER}` };
+      }
+    }
+    
+    const uniqueNumbers = new Set(numbers);
+    if (uniqueNumbers.size !== numbers.length) {
+      return { valid: false, error: 'Duplicate numbers are not allowed' };
+    }
+    
+    return { valid: true };
+  },
+  
+  // Format time remaining
+  formatTimeRemaining: (seconds: number): string => {
+    if (seconds <= 0) return 'Draw ready!';
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  },
+  
+  // Calculate prize tier based on matches
+  getPrizeTier: (matches: number): { tier: string; percentage: number } | null => {
+    switch (matches) {
+      case 5:
+        return { tier: 'Jackpot', percentage: LOTTERY_CONFIG.PRIZE_DISTRIBUTION.JACKPOT / 100 };
+      case 4:
+        return { tier: '2nd Prize', percentage: LOTTERY_CONFIG.PRIZE_DISTRIBUTION.SECOND_PRIZE / 100 };
+      case 3:
+        return { tier: '3rd Prize', percentage: LOTTERY_CONFIG.PRIZE_DISTRIBUTION.THIRD_PRIZE / 100 };
+      case 2:
+        return { tier: '4th Prize', percentage: LOTTERY_CONFIG.PRIZE_DISTRIBUTION.FOURTH_PRIZE / 100 };
+      default:
+        return null;
+    }
+  },
+  
+  // Generate random ticket numbers for quick pick
+  generateQuickPick: (): number[] => {
+    const numbers: number[] = [];
+    while (numbers.length < LOTTERY_CONFIG.NUMBERS_PER_TICKET) {
+      const num = Math.floor(Math.random() * LOTTERY_CONFIG.MAX_NUMBER) + LOTTERY_CONFIG.MIN_NUMBER;
+      if (!numbers.includes(num)) {
+        numbers.push(num);
+      }
+    }
+    return numbers.sort((a, b) => a - b);
+  },
+  
+  // Check if numbers match winning numbers
+  countMatches: (ticketNumbers: number[], winningNumbers: number[]): number => {
+    return ticketNumbers.filter(num => winningNumbers.includes(num)).length;
+  },
+  
+  // Format large numbers for display
+  formatNumber: (num: string | number): string => {
+    const value = typeof num === 'string' ? parseFloat(num) : num;
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(2)}M`;
+    } else if (value >= 1000) {
+      return `${(value / 1000).toFixed(2)}K`;
+    } else {
+      return value.toFixed(2);
+    }
+  },
+  
+  // Convert wei to KAS
+  weiToKAS: (wei: string): string => {
+    return (parseFloat(wei) / 1e18).toFixed(4);
+  },
+  
+  // Convert KAS to wei
+  kasToWei: (kas: string): string => {
+    return (parseFloat(kas) * 1e18).toString();
+  }
+};
 
-// Get contract address based on environment or default to Kasplex
-export const LOTTERY_CONTRACT_ADDRESS = 
-  import.meta.env.VITE_CONTRACT_ADDRESS || 
-  import.meta.env.VITE_KASPLEX_CONTRACT_ADDRESS || 
-  CONTRACT_ADDRESSES.kasplex
+// Error messages
+export const LOTTERY_ERRORS = {
+  INSUFFICIENT_BALANCE: 'Insufficient balance to purchase tickets',
+  INVALID_NUMBERS: 'Invalid ticket numbers selected',
+  DUPLICATE_NUMBERS: 'Duplicate numbers are not allowed',
+  NUMBERS_OUT_OF_RANGE: `Numbers must be between ${LOTTERY_CONFIG.MIN_NUMBER} and ${LOTTERY_CONFIG.MAX_NUMBER}`,
+  TOO_MANY_TICKETS: `Maximum ${LOTTERY_CONFIG.MAX_TICKETS_PER_BATCH} tickets per batch`,
+  NO_TICKETS_SELECTED: 'No tickets selected',
+  DRAW_NOT_READY: 'Draw is not ready for execution',
+  NO_PRIZES_TO_CLAIM: 'No prizes to claim',
+  EMERGENCY_PAUSED: 'Lottery is temporarily paused due to emergency conditions',
+  NETWORK_ERROR: 'Network error. Please try again.',
+  TRANSACTION_FAILED: 'Transaction failed. Please try again.',
+  WALLET_NOT_CONNECTED: 'Please connect your wallet first',
+};
+
+// Success messages
+export const LOTTERY_SUCCESS = {
+  TICKETS_PURCHASED: 'Tickets purchased successfully!',
+  DRAW_EXECUTED: 'Draw executed successfully!',
+  PRIZES_CLAIMED: 'Prizes claimed successfully!',
+  WALLET_CONNECTED: 'Wallet connected successfully!',
+};

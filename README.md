@@ -1,15 +1,16 @@
-# KasDraw - Kaspa Lottery DApp 🎲
+# KasDraw - Decentralized Lottery DApp 🎲
 
-A production-ready decentralized lottery application built on the Igra Labs blockchain, featuring automated draws, real-time updates, transparent prize distribution, and a modern web interface.
+A next-generation decentralized lottery application built on EVM-compatible blockchains, featuring zero centralization, enhanced randomness, automated draws, and a modern web interface powered by the DecentralizedLottery smart contract.
 
 ## 🌟 Features
 
 ### Core Functionality
-- **Decentralized Lottery**: Smart contract-based lottery system with enhanced security
-- **Automated Draws**: Time-based automatic draw execution (every 3.5 days)
-- **Real-time Updates**: Live jackpot and countdown with 5-10 second refresh intervals
-- **Transparent Prizes**: On-chain prize calculation and distribution
-- **Executor Rewards**: Public execution with 0.1% jackpot rewards (min 0.1 KAS, max 10 KAS)
+- **Zero Centralization**: Fully decentralized lottery with no admin controls or manual interventions
+- **Enhanced Randomness**: Advanced random number generation optimized for fast block times
+- **Automated Draws**: Time-based automatic draw execution (every 7 days)
+- **Real-time Updates**: Live jackpot and countdown with analytics-ready data hooks
+- **Transparent Prizes**: On-chain prize calculation and distribution with rollover mechanics
+- **Gas Optimized**: Efficient contract design for minimal transaction costs
 
 ### User Experience
 - **Modern UI**: React-based responsive web interface with Kaspa branding
@@ -19,30 +20,31 @@ A production-ready decentralized lottery application built on the Igra Labs bloc
 - **Mobile Responsive**: Optimized for all device sizes
 
 ### Technical Excellence
-- **Production Ready**: Comprehensive automation and monitoring system
-- **High Performance**: Optimized contract interactions and caching
-- **Robust Logging**: Structured JSON logging for monitoring and debugging
-- **Security First**: Enhanced validation, reentrancy protection, and access controls
+- **Production Ready**: Industry-standard security and optimization practices
+- **High Performance**: Gas-optimized contract interactions and efficient algorithms
+- **Analytics Ready**: Comprehensive event logging for Web3 UI integration
+- **Security First**: Reentrancy protection, emergency pause, and robust validation
+- **EVM Compatible**: Works on Kasplex, Igra, Hardhat, and other EVM networks
 
 ## 🎮 How to Play
 
-1. **Connect Wallet**: Click "Connect Wallet" and select your Kaspa wallet
+1. **Connect Wallet**: Click "Connect Wallet" and select your EVM-compatible wallet
 2. **View Current Draw**: See live jackpot amount and countdown timer
 3. **Purchase Tickets**: Navigate to "Play" page and buy tickets (0.1 KAS each)
 4. **Select Numbers**: Choose 5 numbers from 1-35 for each ticket
-5. **Wait for Draw**: Draws occur automatically every 3.5 days
-6. **Check Results**: View results on the "Draw" page
+5. **Wait for Draw**: Draws occur automatically every 7 days
+6. **Check Results**: View results on the "Draw" page with detailed analytics
 7. **Claim Prizes**: Winners can claim prizes directly from the interface
 
 ## 🏗️ Technical Stack
 
 - **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS with Kaspa theme
+- **Styling**: Tailwind CSS with modern design system
 - **Web3**: Wagmi v2 + RainbowKit + Ethers.js v6
-- **Smart Contract**: Solidity 0.8.19 + OpenZeppelin
+- **Smart Contract**: DecentralizedLottery.sol (Solidity 0.8.19 + OpenZeppelin)
 - **State Management**: Zustand + React Query
 - **Notifications**: Sonner toast system
-- **Network**: Igra Labs Devnet (Chain ID: 2600)
+- **Networks**: Kasplex, Igra Labs, Hardhat (EVM compatible)
 
 ## 🚀 Quick Start
 
@@ -115,9 +117,9 @@ npm run dev
    npx hardhat compile
    ```
 
-3. **Deploy to devnet**
+3. **Deploy DecentralizedLottery**
    ```bash
-   npx hardhat run scripts/deploy.js --network igra
+   npx hardhat run scripts/deployDecentralizedLottery.js --network igra
    ```
 
 4. **Update contract address**
@@ -137,25 +139,30 @@ After deployment, verify the contract on the Igra Labs block explorer for transp
 - **Multiple Tickets**: Purchase multiple tickets in one transaction
 
 ### Prize Structure
-- **Tier 1 (5/5 matches)**: 60% of prize pool (Jackpot)
-- **Tier 2 (4/5 matches)**: 20% of prize pool
+- **Tier 1 (5/5 matches)**: 50% of prize pool (Jackpot)
+- **Tier 2 (4/5 matches)**: 25% of prize pool
 - **Tier 3 (3/5 matches)**: 15% of prize pool
-- **Tier 4 (2/5 matches)**: 5% of prize pool
-- **Admin Fee**: 1% of ticket sales
+- **Tier 4 (2/5 matches)**: 10% of prize pool
+- **Rollover**: Unclaimed prizes roll over to next draw
+- **Zero Admin Fees**: 100% decentralized with no admin extraction
 
 ### Draw Schedule
-- **Frequency**: Every 7 days
-- **Execution**: Automated or public execution
-- **Incentive**: 0.1 KAS reward for executing draws
-- **Transparency**: All draws recorded on blockchain
+- **Frequency**: Every 7 days (604,800 seconds)
+- **Execution**: Fully automated public execution
+- **Incentive**: Dynamic executor rewards (0.1% of jackpot, min 0.1 KAS, max 10 KAS)
+- **Transparency**: All draws recorded on blockchain with comprehensive analytics
 
 ## 🔧 Development
 
 ### Project Structure
 ```
 KasDraw/
-├── contracts/           # Solidity smart contracts
-├── scripts/            # Deployment scripts
+├── contracts/
+│   └── DecentralizedLottery.sol    # Main lottery contract
+├── scripts/
+│   └── deployDecentralizedLottery.js  # Deployment script
+├── test/
+│   └── DecentralizedLottery.test.js    # Comprehensive test suite
 ├── src/
 │   ├── components/     # React components
 │   ├── pages/         # Page components
@@ -163,7 +170,8 @@ KasDraw/
 │   ├── config/        # Configuration files
 │   └── utils/         # Utility functions
 ├── public/            # Static assets
-└── docs/              # Documentation
+├── LotteryContractAudit.md         # Security audit report
+└── DecentralizedLottery_README.md  # Technical documentation
 ```
 
 ### Available Scripts
@@ -173,23 +181,28 @@ KasDraw/
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
 - `npx hardhat compile` - Compile smart contracts
-- `npx hardhat test` - Run contract tests
+- `npx hardhat test` - Run DecentralizedLottery test suite
+- `npx hardhat run scripts/deployDecentralizedLottery.js --network <network>` - Deploy contract
 
 ### Environment Variables
 
 ```bash
 # Smart contract deployment
 PRIVATE_KEY=your_private_key_here
-ADMIN_ADDRESS=0x71d7aCcfB0dFB579b8f00de612890FB875E16eef
 
 # Frontend configuration
-VITE_CONTRACT_ADDRESS=0x8ff583fC58a78ad630A3184826DFC7B4e25072AE
-VITE_RPC_URL=https://devnet.igralabs.com:8545/c6a2b8d4e7f34a9c5d1b7e3f2a8c9d0e/
-VITE_CHAIN_ID=2600
+VITE_CONTRACT_ADDRESS=your_deployed_contract_address
+VITE_RPC_URL=your_network_rpc_url
+VITE_CHAIN_ID=your_network_chain_id
 
-# Note: Contract address updated with latest Igra Labs Devnet deployment
-# Deployed: 2025-07-25 with 0.1 KAS ticket price and enhanced security
-# Network: Igra Labs Devnet (Chain ID: 2600)
+# Example configurations:
+# Kasplex Testnet: VITE_CHAIN_ID=2600
+# Igra Labs: VITE_CHAIN_ID=2600
+# Hardhat Local: VITE_CHAIN_ID=31337
+
+# Note: DecentralizedLottery contract with zero centralization
+# Features: 0.1 KAS tickets, enhanced randomness, gas optimization
+# Networks: EVM-compatible (Kasplex, Igra, Hardhat)
 ```
 
 ### 🔒 Network Configuration (Local Development)

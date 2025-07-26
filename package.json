@@ -1,5 +1,5 @@
 {
-  "name": "trae-project",
+  "name": "kasdraw-decentralized-lottery",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,8 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "check": "tsc -b --noEmit",
-    "deploy": "npx hardhat run scripts/deploy.js --network kasplex",
-    "auto-draw": "npx hardhat run scripts/autoExecuteDraw.js --network kasplex",
+    "deploy": "npx hardhat run scripts/deployDecentralizedLottery.js --network kasplex",
+    "deploy:igra": "npx hardhat run scripts/deployDecentralizedLottery.js --network igra",
+    "deploy:local": "npx hardhat run scripts/deployDecentralizedLottery.js --network localhost",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test"
   },
