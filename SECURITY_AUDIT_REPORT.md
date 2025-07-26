@@ -1,16 +1,16 @@
 # KasDraw Lottery DApp - Comprehensive Security Audit Report
 
-**Version:** 5.0 Final  
-**Date:** December 2024  
+**Version:** 6.0 Final  
+**Date:** July 2025  
 **Auditor:** Security Analysis Team  
-**Contract Address:** 0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97 (Kasplex Testnet)  
-**Network:** Kasplex L2 Testnet (Chain ID: 167012)  
+**Contract Address:** 0x8ff583fC58a78ad630A3184826DFC7B4e25072AE (Igra Labs Devnet)  
+**Network:** Igra Labs Devnet (Chain ID: 2600)  
 
 ---
 
 ## Executive Summary
 
-This comprehensive security audit evaluates the KasDraw lottery DApp, including both the smart contract implementation and frontend application. The audit builds upon previous assessments and incorporates analysis of the latest codebase deployed on Kasplex testnet.
+This comprehensive security audit evaluates the KasDraw lottery DApp, including both the smart contract implementation and frontend application. The audit builds upon previous assessments and incorporates analysis of the latest codebase deployed on Igra Labs Devnet.
 
 ### Key Findings
 
@@ -18,7 +18,7 @@ This comprehensive security audit evaluates the KasDraw lottery DApp, including 
 
 - **Smart Contract Security:** Robust implementation with industry-standard security patterns
 - **Frontend Security:** Well-architected with proper error handling and user protection
-- **Network Integration:** Properly configured for Kasplex L2 with appropriate fallbacks
+- **Network Integration:** Properly configured for Igra Labs Devnet with appropriate fallbacks
 - **Automation Security:** Enhanced dual-validation mechanism for draw execution
 
 ### Critical Metrics
@@ -102,11 +102,11 @@ require(block.number >= nextDrawBlock, "Draw block height not reached yet");
 
 #### ✅ Proper Chain Configuration
 ```typescript
-// Correctly configured for Kasplex testnet
-export const kasplexTestnet = defineChain({
-  id: 167012,
-  name: 'Kasplex Network Testnet',
-  rpcUrls: { default: { http: ['https://rpc.kasplextest.xyz'] } }
+// Correctly configured for Igra Labs Devnet
+export const igraDevnet = defineChain({
+  id: 2600,
+  name: 'Igra Labs Devnet',
+  rpcUrls: { default: { http: ['https://devnet.igralabs.com:8545/c6a2b8d4e7f34a9c5d1b7e3f2a8c9d0e/'] } }
 })
 ```
 
@@ -168,9 +168,9 @@ function _generateRandomNumbers() private view returns (uint256[5] memory) {
 ```
 
 **Mitigation for Current Phase:**
-- Kasplex L2's high block frequency (10 BPS) makes manipulation extremely difficult
+- Igra Labs Devnet's high block frequency makes manipulation extremely difficult
 - Economic cost of manipulation exceeds potential rewards
-- Acceptable for testnet and initial mainnet deployment
+- Acceptable for devnet and initial mainnet deployment
 
 **Future Recommendation:**
 - Integrate Chainlink VRF for production-grade randomness
@@ -196,7 +196,7 @@ function _generateRandomNumbers() private view returns (uint256[5] memory) {
 ```bash
 # Proper environment variable usage
 PRIVATE_KEY=*** (secured)
-VITE_CONTRACT_ADDRESS=0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97
+VITE_CONTRACT_ADDRESS=0x8ff583fC58a78ad630A3184826DFC7B4e25072AE
 ```
 
 #### ✅ Network Configuration

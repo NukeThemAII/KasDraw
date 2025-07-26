@@ -4,8 +4,9 @@ import path from 'path';
 
 const { ethers } = hre;
 
-// Load contract configuration
-const LOTTERY_CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+// Load contract configuration from deployment info
+const deploymentInfo = JSON.parse(fs.readFileSync('deployment-info.json', 'utf8'));
+const LOTTERY_CONTRACT_ADDRESS = deploymentInfo.contractAddress;
 const LOTTERY_ABI = [
   'function canExecuteDrawPublic() view returns (bool)',
   'function executeDrawPublic() external',

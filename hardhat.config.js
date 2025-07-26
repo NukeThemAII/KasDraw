@@ -25,6 +25,13 @@ export default {
       gasPrice: 'auto',
       gas: 'auto',
     },
+    igra: {
+      url: 'https://devnet.igralabs.com:8545/c6a2b8d4e7f34a9c5d1b7e3f2a8c9d0e/',
+      chainId: 2600,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: 'auto',
+      gas: 'auto',
+    },
   },
   paths: {
     sources: './contracts',

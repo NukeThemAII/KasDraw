@@ -8,8 +8,11 @@ async function main() {
   // Get the contract factory
   const KasDrawLottery = await ethers.getContractFactory('KasDrawLottery');
   
-  // Deploy the contract
-  const lottery = await KasDrawLottery.deploy();
+  // Deploy the contract with explicit gas settings
+  const lottery = await KasDrawLottery.deploy({
+    gasLimit: 5000000,
+    gasPrice: ethers.parseUnits('20', 'gwei')
+  });
   
   // Wait for deployment to complete
   await lottery.waitForDeployment();
@@ -28,12 +31,16 @@ async function main() {
   console.log('Ticket Price:', ethers.formatEther(ticketPrice), 'KAS');
   
   // Save deployment info
+  const networkName = hre.network.name;
+  const chainId = hre.network.config.chainId;
+  const networkDisplayName = networkName === 'igra' ? 'Igra Labs Devnet' : 'Kasplex EVM Testnet';
+  
   const deploymentInfo = {
     contractAddress: await lottery.getAddress(),
     deploymentHash: lottery.deploymentTransaction().hash,
     owner: owner,
-    network: 'Kasplex EVM Testnet',
-    chainId: 167012,
+    network: networkDisplayName,
+    chainId: chainId,
     deployedAt: new Date().toISOString()
   };
   

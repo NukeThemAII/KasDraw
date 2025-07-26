@@ -1,8 +1,8 @@
 {
-  "contractAddress": "0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97",
-  "deploymentHash": "0x18674bb1963a8eadcb53ae19d2c79ea842631d6478f3fafdcd19e66785dc1bc4",
+  "contractAddress": "0x8ff583fC58a78ad630A3184826DFC7B4e25072AE",
+  "deploymentHash": "0x3181db4b906f2d76e7808e0bb64dc7d8794e235bffbeabc3644ee4baedb748a2",
   "owner": "0x71d7aCcfB0dFB579b8f00de612890FB875E16eef",
-  "network": "Kasplex EVM Testnet",
-  "chainId": 167012,
-  "deployedAt": "2025-07-24T11:44:03.099Z"
+  "network": "Igra Labs Devnet",
+  "chainId": 2600,
+  "deployedAt": "2025-07-25T10:30:17.710Z"
 }

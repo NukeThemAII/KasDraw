@@ -47,4 +47,31 @@ export const kasplexTestnet = defineChain({
   testnet: true,
 })
 
-export const supportedChains = [hardhatLocal, kasplexTestnet] as const
+// Igra Labs Devnet configuration
+export const igraDevnet = defineChain({
+  id: 2600,
+  name: 'Igra Labs Devnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'iKAS',
+    symbol: 'iKAS',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://devnet.igralabs.com:8545/c6a2b8d4e7f34a9c5d1b7e3f2a8c9d0e/'],
+      webSocket: undefined,
+    },
+    public: {
+      http: ['https://devnet.igralabs.com:8545/c6a2b8d4e7f34a9c5d1b7e3f2a8c9d0e/'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Igra Explorer',
+      url: 'https://explorer.igralabs.com/',
+    },
+  },
+  testnet: true,
+})
+
+export const supportedChains = [hardhatLocal, kasplexTestnet, igraDevnet] as const

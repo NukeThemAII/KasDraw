@@ -1,6 +1,6 @@
 # KasDraw - Kaspa Lottery DApp 🎲
 
-A production-ready decentralized lottery application built on the Kaspa blockchain, featuring automated draws, real-time updates, transparent prize distribution, and a modern web interface.
+A production-ready decentralized lottery application built on the Igra Labs blockchain, featuring automated draws, real-time updates, transparent prize distribution, and a modern web interface.
 
 ## 🌟 Features
 
@@ -28,7 +28,7 @@ A production-ready decentralized lottery application built on the Kaspa blockcha
 
 1. **Connect Wallet**: Click "Connect Wallet" and select your Kaspa wallet
 2. **View Current Draw**: See live jackpot amount and countdown timer
-3. **Purchase Tickets**: Navigate to "Play" page and buy tickets (10 KAS each)
+3. **Purchase Tickets**: Navigate to "Play" page and buy tickets (0.1 KAS each)
 4. **Select Numbers**: Choose 5 numbers from 1-35 for each ticket
 5. **Wait for Draw**: Draws occur automatically every 3.5 days
 6. **Check Results**: View results on the "Draw" page
@@ -42,7 +42,7 @@ A production-ready decentralized lottery application built on the Kaspa blockcha
 - **Smart Contract**: Solidity 0.8.19 + OpenZeppelin
 - **State Management**: Zustand + React Query
 - **Notifications**: Sonner toast system
-- **Network**: Kasplex EVM Testnet (Chain ID: 167012)
+- **Network**: Igra Labs Devnet (Chain ID: 2600)
 
 ## 🚀 Quick Start
 
@@ -102,7 +102,7 @@ npm run dev
 
 ## 📋 Smart Contract Deployment
 
-### Deploy to Kasplex Testnet
+### Deploy to Igra Labs Devnet
 
 1. **Configure Hardhat**
    ```bash
@@ -115,9 +115,9 @@ npm run dev
    npx hardhat compile
    ```
 
-3. **Deploy to testnet**
+3. **Deploy to devnet**
    ```bash
-   npx hardhat run scripts/deploy.js --network kasplex
+   npx hardhat run scripts/deploy.js --network igra
    ```
 
 4. **Update contract address**
@@ -127,12 +127,12 @@ npm run dev
 
 ### Contract Verification
 
-After deployment, verify the contract on the Kasplex block explorer for transparency.
+After deployment, verify the contract on the Igra Labs block explorer for transparency.
 
 ## 🎯 Game Rules
 
 ### Ticket Purchase
-- **Price**: 10 KAS per ticket
+- **Price**: 0.1 KAS per ticket
 - **Numbers**: Select 5 unique numbers from 1-35
 - **Multiple Tickets**: Purchase multiple tickets in one transaction
 
@@ -180,16 +180,16 @@ KasDraw/
 ```bash
 # Smart contract deployment
 PRIVATE_KEY=your_private_key_here
-ADMIN_ADDRESS=0x2546BcD3c84621e976D8185a91A922aE77ECEc30
+ADMIN_ADDRESS=0x71d7aCcfB0dFB579b8f00de612890FB875E16eef
 
 # Frontend configuration
-VITE_CONTRACT_ADDRESS=0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97
-VITE_RPC_URL=https://rpc.kasplextest.xyz
-VITE_CHAIN_ID=167012
+VITE_CONTRACT_ADDRESS=0x8ff583fC58a78ad630A3184826DFC7B4e25072AE
+VITE_RPC_URL=https://devnet.igralabs.com:8545/c6a2b8d4e7f34a9c5d1b7e3f2a8c9d0e/
+VITE_CHAIN_ID=2600
 
-# Note: Contract address updated with latest Kasplex testnet deployment
-# Deployed: 2025-01-15 with enhanced security features
-# Previous addresses: 0x0165878A594ca255338adfa4d48449f69242Eb8F, 0x5FbDB2315678afecb367f032d93F642f64180aa3
+# Note: Contract address updated with latest Igra Labs Devnet deployment
+# Deployed: 2025-07-25 with 0.1 KAS ticket price and enhanced security
+# Network: Igra Labs Devnet (Chain ID: 2600)
 ```
 
 ## 🌿 Development Workflow

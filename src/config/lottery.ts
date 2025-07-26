@@ -5,7 +5,7 @@ export const ADMIN_ADDRESS = '0x71d7aCcfB0dFB579b8f00de612890FB875E16eef'
 
 // Enhanced Lottery game constants - Easier to Win!
 export const LOTTERY_CONFIG = {
-  TICKET_PRICE: '10', // KAS
+  TICKET_PRICE: '0.1', // KAS
   MIN_NUMBER: 1,
   MAX_NUMBER: 35, // Reduced from 49 to 35 for better odds
   NUMBERS_PER_TICKET: 5, // Reduced from 6 to 5 for easier wins
@@ -283,5 +283,15 @@ export const LOTTERY_ABI = [
   }
 ] as const
 
-// Contract address - updated with latest deployment (enhanced with block-based timing)
-export const LOTTERY_CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97'
+// Contract addresses for different networks
+const CONTRACT_ADDRESSES = {
+  kasplex: '0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97', // Kasplex testnet
+  igra: '0x8ff583fC58a78ad630A3184826DFC7B4e25072AE', // Igra Labs devnet (updated with 0.1 KAS price)
+  hardhat: '0x5FbDB2315678afecb367f032d93F642f64180aa3' // Local hardhat
+}
+
+// Get contract address based on environment or default to Igra
+export const LOTTERY_CONTRACT_ADDRESS = 
+  import.meta.env.VITE_CONTRACT_ADDRESS || 
+  import.meta.env.VITE_IGRA_CONTRACT_ADDRESS || 
+  CONTRACT_ADDRESSES.igra
