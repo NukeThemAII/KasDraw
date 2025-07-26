@@ -192,6 +192,23 @@ VITE_CHAIN_ID=2600
 # Network: Igra Labs Devnet (Chain ID: 2600)
 ```
 
+### 🔒 Network Configuration (Local Development)
+
+**Important**: For AI agents and local development, a `network.md` file contains comprehensive network information including:
+
+- Complete network configurations for all 3 supported networks (Hardhat, Kasplex, Igra Labs)
+- Deployment credentials and wallet addresses
+- Current contract addresses for each network
+- Deployment scripts and commands
+- Environment variable templates
+
+**⚠️ Security Notice**: The `network.md` file contains sensitive information (private keys) and is:
+- **Excluded from Git**: Added to `.gitignore` to prevent accidental commits
+- **Local Only**: Should never be shared or pushed to repositories
+- **AI Agent Reference**: Provides consistent network information for automated deployments
+
+**For Contributors**: If you need network configuration details, refer to the local `network.md` file or contact the project maintainers.
+
 ## 🌿 Development Workflow
 
 ### Branch Strategy

@@ -27,6 +27,9 @@ build-info/
 # Test files
 test-*.cjs
 
+# Network configuration with sensitive data
+network.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
