@@ -5,17 +5,17 @@ export const ADMIN_ADDRESS = '0x71d7aCcfB0dFB579b8f00de612890FB875E16eef'
 
 // Enhanced Lottery game constants - Easier to Win!
 export const LOTTERY_CONFIG = {
-  TICKET_PRICE: '0.1', // KAS
+  TICKET_PRICE: '10.0', // 10.0 KAS per ticket (as deployed)
   MIN_NUMBER: 1,
-  MAX_NUMBER: 35, // Reduced from 49 to 35 for better odds
-  NUMBERS_PER_TICKET: 5, // Reduced from 6 to 5 for easier wins
+  MAX_NUMBER: 49,
+  NUMBERS_PER_TICKET: 6,
   DRAWS_PER_WEEK: 2,
-  DRAW_DAYS: ['Wednesday', 'Saturday'], // Updated draw days
-  DRAW_TIME: '20:00 UTC',
-  DRAW_INTERVAL_HOURS: 84, // 3.5 days (twice per week)
-  EXECUTOR_REWARD_PERCENTAGE: 0.1, // 0.1% of jackpot
-  MIN_EXECUTOR_REWARD: 0.1, // Minimum 0.1 KAS
-  MAX_EXECUTOR_REWARD: 10, // Maximum 10 KAS
+  DRAW_DAYS: [3, 6], // Wednesday (3) and Saturday (6)
+  DRAW_TIME: '20:00', // 8 PM
+  DRAW_INTERVAL_HOURS: 84, // 3.5 days between draws
+  EXECUTOR_REWARD_PERCENTAGE: 1, // 1% of prize pool
+  MIN_EXECUTOR_REWARD: '0.1', // Minimum 0.1 KAS
+  MAX_EXECUTOR_REWARD: '10', // Maximum 10 KAS
 } as const
 
 // Enhanced Prize structure with more winning tiers
@@ -285,13 +285,13 @@ export const LOTTERY_ABI = [
 
 // Contract addresses for different networks
 const CONTRACT_ADDRESSES = {
-  kasplex: '0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97', // Kasplex testnet
+  kasplex: '0x98a05a361a79eF343C8b0b666566145076AEE5ca', // Kasplex testnet
   igra: '0x8ff583fC58a78ad630A3184826DFC7B4e25072AE', // Igra Labs devnet (updated with 0.1 KAS price)
   hardhat: '0x5FbDB2315678afecb367f032d93F642f64180aa3' // Local hardhat
 }
 
-// Get contract address based on environment or default to Igra
+// Get contract address based on environment or default to Kasplex
 export const LOTTERY_CONTRACT_ADDRESS = 
   import.meta.env.VITE_CONTRACT_ADDRESS || 
-  import.meta.env.VITE_IGRA_CONTRACT_ADDRESS || 
-  CONTRACT_ADDRESSES.igra
+  import.meta.env.VITE_KASPLEX_CONTRACT_ADDRESS || 
+  CONTRACT_ADDRESSES.kasplex

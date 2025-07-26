@@ -1,8 +1,17 @@
 {
-  "contractAddress": "0x8ff583fC58a78ad630A3184826DFC7B4e25072AE",
-  "deploymentHash": "0x3181db4b906f2d76e7808e0bb64dc7d8794e235bffbeabc3644ee4baedb748a2",
+  "contractName": "KasDrawLotteryV2Fixed",
+  "contractAddress": "0x98a05a361a79eF343C8b0b666566145076AEE5ca",
+  "deploymentHash": "0xd59d60c4a073a84f9bf6b4dec9074f9619b0f341a88010391d8fad91cda7aead",
+  "deployer": "0x71d7aCcfB0dFB579b8f00de612890FB875E16eef",
   "owner": "0x71d7aCcfB0dFB579b8f00de612890FB875E16eef",
-  "network": "Igra Labs Devnet",
-  "chainId": 2600,
-  "deployedAt": "2025-07-25T10:30:17.710Z"
+  "network": "kasplex-testnet",
+  "chainId": 167012,
+  "rpcUrl": "https://rpc.kasplextest.xyz",
+  "explorerUrl": "https://frontend.kasplextest.xyz/address/0x98a05a361a79eF343C8b0b666566145076AEE5ca",
+  "deployedAt": "2025-07-26T04:03:32.832Z",
+  "gasSettings": {
+    "gasLimit": 6000000,
+    "maxFeePerGas": "5000000000000",
+    "maxPriorityFeePerGas": "5000000000000"
+  }
 }
