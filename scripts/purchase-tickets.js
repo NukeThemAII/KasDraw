@@ -17,7 +17,7 @@ async function main() {
   const [owner, addr1, addr2] = await ethers.getSigners();
   
   // Purchase tickets from different accounts
-  const ticketPrice = ethers.parseEther("10"); // 10 KAS per ticket
+  const ticketPrice = ethers.parseEther("0.1"); // 0.1 KAS per ticket
   
   console.log("\nPurchasing tickets...");
   

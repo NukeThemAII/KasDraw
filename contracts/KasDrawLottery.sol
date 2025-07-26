@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
  */
 contract KasDrawLottery is Ownable, ReentrancyGuard, Pausable {
     // Enhanced Constants for Better User Engagement
-    uint256 public constant TICKET_PRICE = 1 ether; // 1 KAS
+    uint256 public constant TICKET_PRICE = 0.1 ether; // 0.1 KAS
     uint256 public constant NUMBERS_PER_TICKET = 5; // Reduced from 6 to 5 for easier wins
     uint256 public constant MAX_NUMBER = 35; // Reduced from 49 to 35 for better odds
     uint256 public constant MIN_NUMBER = 1;

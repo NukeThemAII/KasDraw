@@ -1,6 +1,6 @@
 # KasDraw Development Tasks
 
-## Current Sprint Status - December 27, 2024
+## Current Sprint Status - July 25, 2025
 
 ### ✅ Recently Completed (This Session)
 - [x] Fixed lottery state data fetching in frontend
@@ -18,7 +18,7 @@
 - [x] Updated tasks.md with latest UI improvements and documentation updates
 
 ### ✅ Core Functionality Completed
-- [x] Smart contract implementation with 10 KAS ticket price (updated from 0.1 KAS)
+- [x] Smart contract implementation with 0.1 KAS ticket price (updated from 10 KAS)
 - [x] Enhanced lottery system with 5-number selection (1-35, pick 5 numbers)
 - [x] Lottery ticket purchase system
 - [x] Quick pick functionality
@@ -76,9 +76,9 @@
 - [x] Results page white screen issue (FIXED: Added error handling and fallback UI)
 - [x] Smart contract deployment and integration (FIXED: New contract deployed with enhanced features)
 - [x] Transaction failures due to outdated contract (FIXED: Updated contract address and ABI)
-- [x] Kasplex testnet deployment configuration (FIXED: Deployed to Kasplex testnet with address 0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97)
-- [x] Frontend configuration for live Kasplex data (FIXED: Updated wagmi config and contract hooks)
-- [ ] Ticket purchase gas optimization needed for Kasplex testnet
+- [x] Igra Labs Devnet deployment configuration (FIXED: Deployed to Igra Labs Devnet with address 0x8ff583fC58a78ad630A3184826DFC7B4e25072AE)
+- [x] Frontend configuration for live Igra data (FIXED: Updated wagmi config and contract hooks)
+- [ ] Ticket purchase gas optimization needed for Igra Labs Devnet
 
 ### Known Bugs
 - [ ] "My Tickets" page occasionally loads as white page (requires refresh)
@@ -136,12 +136,12 @@
 - [ ] CI/CD pipeline
 
 ## Notes
-- Current ticket price: 10 KAS (updated from 0.1 KAS)
+- Current ticket price: 0.1 KAS (updated from 10 KAS)
 - Enhanced lottery system: 1-35 (pick 5 numbers) with 4 prize tiers
 - Kaspa turquoise theme implemented
 - BlockDAG/GhostDAG terminology integrated
-- Smart contract deployed and functional on Kasplex testnet
-- **Latest contract address: 0x1e53ab878e2e5F66db4337894Ed22e0F9b07BD97 (Kasplex testnet)**
+- Smart contract deployed and functional on Igra Labs Devnet
+- **Latest contract address: 0x8ff583fC58a78ad630A3184826DFC7B4e25072AE (Igra Labs Devnet)**
 - Enhanced Results page with live on-chain data and error handling
 - Results page simplified to show current tickets and last draw winners
 - Security audit completed - HIGH security rating
